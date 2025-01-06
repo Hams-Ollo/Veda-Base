@@ -12,6 +12,10 @@
 - 📈 Real-time System Monitoring
 - 🚌 Asynchronous Message Bus
 - 🔍 Semantic Search and Analysis
+- 🎯 Automated Tag Suggestions
+- 🔄 Dynamic Content Processing
+- 🧠 Context-Aware Categorization
+- 📱 Modern Streamlit Interface
 
 ## 🧩 Components
 
@@ -20,6 +24,9 @@
 - **📝 Document Processors**: Document handling and analysis with multi-format support
 - **🌐 Knowledge Graph**: Semantic relationship management with graph visualization
 - **🗂️ Taxonomy Master**: Hierarchical classification and tagging system
+- **🚌 Message Bus**: Asynchronous communication system between agents
+- **📊 Performance Monitor**: System-wide metrics and resource tracking
+- **🔒 Security Manager**: Access control and data protection
 
 ## 📋 Prerequisites
 
@@ -27,6 +34,7 @@
 - 🌱 Virtual environment (recommended)
 - 🔑 Groq API key for AI capabilities
 - 🗄️ PostgreSQL (optional, for advanced storage)
+- 📦 Docker (recommended for deployment)
 
 ## 🚀 Setup
 
@@ -46,20 +54,15 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 ### 3. Install dependencies
 
-First, install the package in development mode:
-
 ```bash
 # Install the package
 pip install -e .
 
 # Then install additional dependencies
 pip install -r requirements.txt
-```
 
-For development installation (includes testing and documentation tools):
-
-```bash
-pip install -e ".[dev]"
+# For development (includes testing and documentation tools)
+pip install -r test-requirements.txt
 ```
 
 ### 4. Set up environment variables
@@ -74,75 +77,96 @@ Required environment variables:
 - `🔐 GROQ_API_KEY`: Your Groq API key
 - `🐛 DEBUG`: Set to false in production
 - `📝 LOG_LEVEL`: Recommended INFO in production
+- `🔒 SECURITY_KEY`: For secure communications
+- `📊 MONITORING_ENABLED`: Enable performance tracking
 - Other variables as specified in .env.example
 
 ## 🎮 Running the Application
 
-### 1. Start the Streamlit frontend
+### Development Mode
 
 ```bash
 python -m streamlit run app/frontend/streamlit_app.py
 ```
 
-### 2. Access the application
+### Production Mode (with Docker)
 
-Open your browser and navigate to:
-
-```curl
-http://localhost:8501
+```bash
+docker-compose up -d
 ```
+
+Access the application at: `http://localhost:8501`
 
 ## 🏗️ System Architecture
 
 ### 🤖 Multi-Agent System
 
-- 🚌 Asynchronous message bus for inter-agent communication
+- 🚌 Asynchronous message bus with priority routing
 - 🧩 Modular agent system with specialized capabilities
 - ⚖️ Dynamic agent scaling and load balancing
 - 🔄 Fault tolerance and error recovery
+- 📊 Performance monitoring and metrics
 
-### 📄 Document Processing Pipeline
+### 📄 Document Processing
 
-- 📦 Multi-format document support (Markdown, PDF, DOCX, etc.)
+- 📦 Multi-format support (Markdown, PDF, DOCX, etc.)
+- 🔄 Parallel processing capabilities
 - 📑 Content extraction and analysis
 - 🔗 Semantic relationship detection
 - 🏷️ Automatic tagging and classification
 
 ### 🌐 Knowledge Graph
 
-- 📊 Semantic relationship visualization
-- 🔍 Interactive graph exploration
+- 📊 Interactive visualization
+- 🔍 Optimized query patterns
 - 🛣️ Path finding and relationship analysis
-- 🔄 Dynamic graph updates
+- 💾 Caching for frequently accessed nodes
+- 🔄 Real-time graph updates
 
 ### 🗂️ Taxonomy System
 
 - 📚 Hierarchical classification
-- 🤖 Automated tag suggestions
+- 🤖 AI-powered tag suggestions
 - 🧠 Context-aware categorization
-- 🔗 Tag relationship management
+- 🔗 Dynamic relationship management
 
 ## 👨‍💻 Development
 
-### Running Tests
+### Testing
 
 ```bash
+# Run all tests
 pytest
+
+# Run specific test categories
+pytest tests/unit
+pytest tests/integration
+pytest tests/performance
 ```
 
 ### Code Quality
 
 ```bash
+# Format code
 black .
 isort .
+
+# Static analysis
 flake8
 mypy .
+
+# Security checks
+bandit -r .
 ```
 
-### Documentation
+### Performance Testing
 
 ```bash
-mkdocs serve
+# Run performance benchmarks
+python run_performance_tests.py
+
+# Run stress tests
+python run_stress_tests.py
 ```
 
 ## 📁 Project Structure
@@ -150,25 +174,47 @@ mkdocs serve
 ```curl
 library-of-alexandria/
 ├── app/
-│   ├── agents/             # 🤖 Multi-agent system components
-│   ├── core/              # ⚙️ Core functionality and utilities
-│   └── frontend/          # 🎨 Streamlit frontend application
-├── docs/                  # 📚 Documentation
-├── tests/                 # 🧪 Test suite
-└── data/                  # 💾 Data storage (git-ignored)
+│   ├── agents/          # 🤖 Multi-agent system
+│   ├── core/           # ⚙️ Core functionality
+│   ├── frontend/       # 🎨 Streamlit interface
+│   └── utils/          # 🔧 Utility functions
+├── docs/               # 📚 Documentation
+│   ├── api/           # 📘 API documentation
+│   └── architecture/  # 🏗️ Design decisions
+├── tests/             # 🧪 Test suites
+│   ├── unit/         # 🔬 Unit tests
+│   ├── integration/  # 🔗 Integration tests
+│   └── performance/  # ⚡ Performance tests
+└── monitoring/        # 📊 Performance metrics
 ```
+
+## 🚧 Current Development Focus
+
+1. 🎯 Priority 1 (Immediate)
+   - Comprehensive error handling
+   - Performance monitoring system
+   - Code optimization
+   - Test coverage enhancement
+
+2. 🔄 Priority 2 (Short-term)
+   - Docker containerization
+   - Caching implementation
+   - API documentation
+   - Automated testing
+
+3. 🔮 Priority 3 (Long-term)
+   - Automated scaling
+   - Monitoring dashboard
+   - CI/CD pipeline
+   - Security enhancements
 
 ## 🤝 Contributing
 
-1. 🍴 Fork the repository
-2. 🌿 Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. ✍️ Commit your changes (`git commit -m 'Add amazing feature'`)
-4. 🚀 Push to the branch (`git push origin feature/amazing-feature`)
-5. 🔍 Open a Pull Request
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -179,11 +225,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 💬 Support
 
-For support and questions:
-
-- 🐛 Open an issue in the repository
-- 📚 Check the documentation
-- 📧 Contact the development team
+- 📖 [Documentation](docs/)
+- 🐛 [Issue Tracker](../../issues)
+- 📧 [Contact Team](mailto:team@libraryofalexandria.ai)
 
 ---
 
