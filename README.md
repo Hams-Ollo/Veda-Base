@@ -1,202 +1,189 @@
-# 📚 Library of Alexandria - Knowledge Article Factory
+# Library of Alexandria
 
-A powerful AI-driven document processing and knowledge management system that transforms various document formats into an interconnected knowledge base with semantic search capabilities and an advanced tiered tagging system.
+A multi-agent system for knowledge management and document processing, powered by advanced AI and semantic analysis.
 
-## 🎯 Features
+## Features
 
-- 🔄 Multi-format document conversion
-- 🤖 AI-powered content analysis and tag suggestions
-- 🏷️ Advanced 5-tier tagging system with controlled vocabulary
-- 🕸️ Interactive knowledge graph visualization
-- 📊 Semantic search capabilities
-- 🎓 AI Librarian Assistant
-- 🎨 Beautiful, responsive UI with Streamlit
+- Multi-Agent System Architecture
+- Document Processing and Analysis
+- Knowledge Graph Generation
+- Taxonomy Management
+- Interactive Visualization
+- Real-time System Monitoring
+- Asynchronous Message Bus
+- Semantic Search and Analysis
 
-## 🛠️ Technical Stack
+## Components
 
-- **Frontend**: Streamlit
-- **Data Processing**: Python 3.11+
-- **AI/ML**:
-  - LangChain for document processing
-  - Groq's Mixtral-8x7b for tag suggestions
-  - Transformers for content analysis
-- **Visualization**:
-  - Plotly for data visualization
-  - PyVis for knowledge graphs
-- **Storage**: ChromaDB for vector storage
-- **API Integration**: FastAPI
-- **Document Processing**:
-  - PyPDF for PDF files
-  - python-docx for Word documents
-  - python-pptx for PowerPoint files
+- **Librarian Prime**: Main orchestrator agent for system coordination
+- **Domain Specialists**: Specialized knowledge processing agents for different domains
+- **Document Processors**: Document handling and analysis with multi-format support
+- **Knowledge Graph**: Semantic relationship management with graph visualization
+- **Taxonomy Master**: Hierarchical classification and tagging system
 
-## 🚀 Getting Started
+## Prerequisites
 
-### Prerequisites
+- Python 3.8 or higher
+- Virtual environment (recommended)
+- Groq API key for AI capabilities
+- PostgreSQL (optional, for advanced storage)
 
-- Python 3.9 or higher
-- Git
-- Virtual Environment (recommended)
-- Groq API key (for AI features)
+## Setup
 
-### 🔧 Installation
+### 1. Clone the repository
 
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/yourusername/Library-of-Alexandria.git
-   cd Library-of-Alexandria
-   ```
-
-2. **Set up virtual environment**
-
-   ```bash
-   python -m venv venv
-   
-   # Windows
-   .\venv\Scripts\activate
-   
-   # Linux/MacOS
-   source venv/bin/activate
-   ```
-
-3. **Install dependencies**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Environment setup**
-   Create a `.env` file in the root directory:
-
-   ```env
-   GROQ_API_KEY=your_groq_api_key
-   ```
-
-### 🏃‍♂️ Running the Application
-
-1. **Start the Streamlit app**
-
-   ```bash
-   streamlit run streamlit_app.py
-   ```
-
-2. **Access the web interface**
-   - Open your browser and navigate to `http://localhost:8501`
-   - The app will also provide a network URL for local network access
-
-## 📁 Project Structure
-
-```curl
-Library-of-Alexandria/
-├── streamlit_app.py              # Main Streamlit application
-├── requirements.txt              # Project dependencies
-├── .env                         # Environment variables
-├── RAG_init/                   # Initial document storage
-├── RAG_refined/                # Processed knowledge articles
-└── app/
-    ├── markdown_knowledge_object_factory.py
-    ├── tagging_system.py        # Core tagging system implementation
-    └── tag_suggester.py         # AI-powered tag suggestion system
+```bash
+git clone https://github.com/yourusername/library-of-alexandria.git
+cd library-of-alexandria
 ```
 
-## 🎮 Advanced Tagging System
+### 2. Create a virtual environment
 
-The application implements a sophisticated 5-tier tagging system with controlled vocabulary and AI-powered suggestions.
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-### Tag Tiers and Categories
+### 3. Install dependencies
 
-1. ⚪ **Common Tags** (Basic Categorization)
-   - **Domain**: Primary field/discipline (e.g., ai, history, psychology)
-   - **Era**: Time period (e.g., renaissance, 21st-century)
-   - **Format**: Content type (e.g., article, book, podcast)
+First, install the package in development mode:
 
-2. 🟢 **Fine Tags** (General Themes)
-   - **Themes**: High-level ideas (e.g., innovation, ethics)
-   - **Concepts**: Theoretical frameworks (e.g., neural-networks, stoicism)
-   - **Patterns**: Recurring models (e.g., feedback-loops, fractals)
+```bash
+# Install the package
+pip install -e .
 
-3. 🔵 **Rare Tags** (Specific Topics)
-   - **Topics**: Specialized areas (e.g., adversarial-attacks)
-   - **Terminology**: Key terms (e.g., rag, latent-space)
-   - **Methods**: Techniques (e.g., lstm-optimization)
+# Then install additional dependencies
+pip install -r requirements.txt
+```
 
-4. 🟣 **Epic Tags** (Insights & Connections)
-   - **Insights**: Key realizations
-   - **Connections**: Cross-disciplinary links
-   - **Innovations**: Novel approaches
+For development installation (includes testing and documentation tools):
 
-5. 🟡 **Legendary Tags** (Core Principles)
-   - **Principles**: Universal truths (e.g., conservation-of-energy)
-   - **Paradigms**: Foundational frameworks (e.g., heros-journey)
+```bash
+pip install -e ".[dev]"
+```
 
-### AI-Powered Tag Suggestions
+### 4. Set up environment variables
 
-- Automatic tag generation using Groq's Mixtral-8x7b model
-- Confidence scores for suggested tags
-- Explanations for tag relevance
-- Tag validation and cleaning
-- Controlled vocabulary enforcement
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
 
-### Tag Network Features
+Required environment variables:
 
-- Bidirectional linking between related content
-- Interactive knowledge graph visualization
-- Tag relationship discovery
-- Content recommendation based on tag relationships
+- `GROQ_API_KEY`: Your Groq API key
+- `DEBUG`: Set to false in production
+- `LOG_LEVEL`: Recommended INFO in production
+- Other variables as specified in .env.example
 
-## 🔧 Troubleshooting
+## Running the Application
 
-Common issues and solutions:
+### 1. Start the Streamlit frontend
 
-1. **Installation Issues**
+```bash
+python -m streamlit run app/frontend/streamlit_app.py
+```
 
-   ```bash
-   # If you encounter SSL errors
-   pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
-   ```
+### 2. Access the application
 
-2. **Memory Errors**
-   - Reduce batch size in processing
-   - Clear RAG directories
-   - Restart the application
+Open your browser and navigate to:
 
-3. **Graph Visualization Issues**
-   - Clear browser cache
-   - Try a different browser
-   - Reduce number of displayed nodes
+```curl
+http://localhost:8501
+```
 
-4. **Tag Suggestion Issues**
-   - Ensure GROQ_API_KEY is properly set
-   - Check API rate limits
-   - Verify content length is within model limits
+## System Architecture
 
-## 🤝 Contributing
+### Multi-Agent System
+
+- Asynchronous message bus for inter-agent communication
+- Modular agent system with specialized capabilities
+- Dynamic agent scaling and load balancing
+- Fault tolerance and error recovery
+
+### Document Processing Pipeline
+
+- Multi-format document support (Markdown, PDF, DOCX, etc.)
+- Content extraction and analysis
+- Semantic relationship detection
+- Automatic tagging and classification
+
+### Knowledge Graph
+
+- Semantic relationship visualization
+- Interactive graph exploration
+- Path finding and relationship analysis
+- Dynamic graph updates
+
+### Taxonomy System
+
+- Hierarchical classification
+- Automated tag suggestions
+- Context-aware categorization
+- Tag relationship management
+
+## Development
+
+### Running Tests
+
+```bash
+pytest
+```
+
+### Code Quality
+
+```bash
+black .
+isort .
+flake8
+mypy .
+```
+
+### Documentation
+
+```bash
+mkdocs serve
+```
+
+## Project Structure
+
+```curl
+library-of-alexandria/
+├── app/
+│   ├── agents/             # Multi-agent system components
+│   ├── core/              # Core functionality and utilities
+│   └── frontend/          # Streamlit frontend application
+├── docs/                  # Documentation
+├── tests/                 # Test suite
+└── data/                  # Data storage (git-ignored)
+```
+
+## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Inspired by the Great Library of Alexandria
 - Built with Streamlit's amazing framework
 - Powered by Groq's LLM capabilities
 - Special thanks to the open-source community
 
-## 📞 Support
+## Support
 
 For support and questions:
 
-- 📧 Open an issue in the repository
-- 💬 Contact the development team
-- 📚 Check the documentation
+- Open an issue in the repository
+- Check the documentation
+- Contact the development team
 
 ---
 
