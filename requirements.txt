@@ -10,6 +10,7 @@ aiohttp>=3.8.5
 asyncio>=3.4.3
 websockets>=12.0
 python-multipart>=0.0.6
+aiofiles>=23.2.1
 
 # Data Processing and Analysis
 pandas>=2.0.3
@@ -20,11 +21,17 @@ scipy>=1.11.0
 # Document Processing
 python-docx>=0.8.11
 PyPDF2>=3.0.1
+PyMuPDF>=1.23.8
 markdown>=3.4.3
 python-pptx>=0.6.22
 python-magic>=0.4.27
 beautifulsoup4>=4.12.0
 lxml>=4.9.0
+bibtexparser>=1.4.1
+scholarly>=1.7.11
+camelot-py>=0.11.0
+opencv-python>=4.8.0
+ghostscript>=0.7.0
 
 # AI and Machine Learning
 groq>=0.4.2
@@ -83,3 +90,6 @@ sphinx>=7.1.0
 sphinx-rtd-theme>=1.3.0
 mkdocs>=1.5.0
 mkdocs-material>=9.5.0
+
+# Caching
+diskcache>=5.6.1

@@ -1,6 +1,6 @@
 # 📚 Library of Alexandria
 
-> 🌟 A multi-agent system for knowledge management and document processing, powered by advanced AI and semantic analysis.
+> 🌟 A multi-agent system for knowledge management and document processing, featuring an advanced React frontend and FastAPI backend.
 
 ## ✨ Features
 
@@ -8,15 +8,29 @@
 - 📄 Document Processing and Analysis
 - 🕸️ Knowledge Graph Generation
 - 🏷️ Taxonomy Management
-- 📊 Interactive Visualization
-- 📈 Real-time System Monitoring
-- 🚌 Asynchronous Message Bus
+- 📱 Interactive React-based UI
+- 🔄 Real-time Processing Updates via WebSocket
+- 📨 Asynchronous Message Bus
 - 🔍 Semantic Search and Analysis
-- 🎯 Automated Tag Suggestions
-- 🔄 Dynamic Content Processing
-- 🧠 Context-Aware Categorization
-- 📱 Modern Streamlit Interface
-- 🔮 Vector Similarity Search
+
+## 🛠️ Tech Stack
+
+### Backend
+
+- 🐍 Python 3.8+
+- ⚡ FastAPI
+- 🗃️ ChromaDB for vector storage
+- 🔄 AsyncIO for concurrent processing
+- 🔌 WebSocket support for real-time updates
+
+### Frontend
+
+- ⚛️ Next.js 14
+- 🎨 React 18
+- 💅 TailwindCSS
+- 🔄 React Query for data fetching
+- 🔌 WebSocket integration
+- 📥 Drag-and-drop file upload
 
 ## 🧩 Components
 
@@ -32,201 +46,139 @@
 
 ## 📋 Prerequisites
 
-- 🐍 Python 3.8 or higher
-- 🌱 Virtual environment (recommended)
-- 🔑 Groq API key for AI capabilities
-- 🗄 ChromaDB (v0.4.22 or higher)
-- 🗄️ PostgreSQL (optional, for advanced storage)
-- 📦 Docker (recommended for deployment)
-
-## 🚀 Setup
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/yourusername/library-of-alexandria.git
-cd library-of-alexandria
-```
-
-### 2. Create a virtual environment
-
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-### 3. Install dependencies
-
-```bash
-# Install the package
-pip install -e .
-
-# Then install additional dependencies
-pip install -r requirements.txt
-
-# For development (includes testing and documentation tools)
-pip install -r test-requirements.txt
-```
-
-### 4. Set up environment variables
-
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-Required environment variables:
-
-- `🔐 GROQ_API_KEY`: Your Groq API key
-- `🐛 DEBUG`: Set to false in production
-- `📝 LOG_LEVEL`: Recommended INFO in production
-- `🔒 SECURITY_KEY`: For secure communications
-- `📊 MONITORING_ENABLED`: Enable performance tracking
-- `💾 CHROMA_DB_DIR`: ChromaDB storage directory
-- Other variables as specified in .env.example
-
-## 🎮 Running the Application
-
-### Development Mode
-
-```bash
-python -m streamlit run app/frontend/streamlit_app.py
-```
-
-### Production Mode (with Docker)
-
-```bash
-docker-compose up -d
-```
-
-Access the application at: `http://localhost:8501`
-
-## 🏗️ System Architecture
-
-### 🤖 Multi-Agent System
-
-- 🚌 Asynchronous message bus with priority routing
-- 🧩 Modular agent system with specialized capabilities
-- ⚖️ Dynamic agent scaling and load balancing
-- 🔄 Fault tolerance and error recovery
-- 📊 Performance monitoring and metrics
-
-### 📄 Document Processing
-
-- 📦 Multi-format support (Markdown, PDF, DOCX, etc.)
-- 🔄 Parallel processing capabilities
-- 📑 Content extraction and analysis
-- 🔗 Semantic relationship detection
-- 🏷️ Automatic tagging and classification
-
-### 🌐 Knowledge Graph
-
-- 📊 Interactive visualization
-- 🔍 Optimized query patterns
-- 🛣️ Path finding and relationship analysis
-- 💾 Caching for frequently accessed nodes
-- 🔄 Real-time graph updates
-
-### 🗂️ Taxonomy System
-
-- 📚 Hierarchical classification
-- 🤖 AI-powered tag suggestions
-- 🧠 Context-aware categorization
-- 🔗 Dynamic relationship management
-
-### 💾 Vector Store
-
-- 📚 ChromaDB-powered semantic storage
-- 🔍 Efficient similarity search
-- 📊 Vector embeddings management
-- 🔄 Real-time updates and indexing
-- 🎯 Contextual retrieval
-
-## 👨‍💻 Development
-
-### Testing
-
-```bash
-# Run all tests
-pytest
-
-# Run specific test categories
-pytest tests/unit
-pytest tests/integration
-pytest tests/performance
-```
-
-### Code Quality
-
-```bash
-# Format code
-black .
-isort .
-
-# Static analysis
-flake8
-mypy .
-
-# Security checks
-bandit -r .
-```
-
-### Performance Testing
-
-```bash
-# Run performance benchmarks
-python run_performance_tests.py
-
-# Run stress tests
-python run_stress_tests.py
-```
+1. 🐍 Python 3.8 or higher
+2. 🌱 Node.js 18 or higher
+3. 🐋 Docker (recommended for deployment)
+4. 🔄 Redis (optional, for caching)
 
 ## 📁 Project Structure
 
 ```curl
 library-of-alexandria/
-├── app/
-│   ├── agents/          # 🤖 Multi-agent system
-│   ├── core/           # ⚙️ Core functionality
-│   ├── frontend/       # 🎨 Streamlit interface
-│   └── utils/          # 🔧 Utility functions
-├── docs/               # 📚 Documentation
-│   ├── api/           # 📘 API documentation
-│   └── architecture/  # 🏗️ Design decisions
-├── tests/             # 🧪 Test suites
-│   ├── unit/         # 🔬 Unit tests
-│   ├── integration/  # 🔗 Integration tests
-│   └── performance/  # ⚡ Performance tests
-└── monitoring/        # 📊 Performance metrics
+├── app/                    # Backend application
+│   ├── api/               # FastAPI routes and WebSocket
+│   ├── agents/            # Multi-agent system components
+│   ├── core/              # Core processing logic
+│   └── utils/             # Shared utilities
+├── frontend/              # React frontend application
+│   ├── src/
+│   │   ├── app/          # Next.js pages
+│   │   ├── components/   # React components
+│   │   ├── services/     # API integration
+│   │   └── hooks/        # Custom React hooks
+└── docs/                  # Documentation
 ```
 
-## 🚧 Current Development Focus
+## 🚀 Installation
 
-1. 🎯 Priority 1 (Immediate)
-   - Comprehensive error handling
-   - Performance monitoring system
-   - Code optimization
-   - Test coverage enhancement
+### Backend Setup
 
-2. 🔄 Priority 2 (Short-term)
-   - Docker containerization
-   - Caching implementation
-   - API documentation
-   - Automated testing
+1. Create a virtual environment:
 
-3. 🔮 Priority 3 (Long-term)
-   - Automated scaling
-   - Monitoring dashboard
-   - CI/CD pipeline
-   - Security enhancements
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   # or
+   .\venv\Scripts\activate  # Windows
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Configure environment variables:
+
+   ```bash
+   cp .env.example .env
+   # Edit .env with your settings
+   ```
+
+### Frontend Setup
+
+1. Navigate to the frontend directory:
+
+   ```bash
+   cd frontend
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Configure environment variables:
+
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your settings
+   ```
+
+## 💻 Development
+
+### Running the Backend
+
+```bash
+uvicorn app.main:app --reload
+```
+
+### Running the Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+The application will be available at:
+
+- 🌐 Frontend: <http://localhost:3000>
+- 🔌 Backend API: <http://localhost:8000>
+- 📚 API Documentation: <http://localhost:8000/docs>
+
+## 🎯 Features in Detail
+
+### Document Processing
+
+- 📄 Support for multiple document formats (PDF, DOCX, MD, TEX, HTML)
+- ⚡ Real-time processing status updates
+- 📦 Batch processing capabilities
+- 📊 Progress tracking and error handling
+
+### User Interface
+
+- 🎨 Modern, responsive design
+- 📥 Drag-and-drop file upload
+- 📊 Real-time processing progress
+- 📈 Interactive visualizations
+- ⚠️ Error handling and feedback
+
+### API Integration
+
+- 🔌 RESTful endpoints for document management
+- 🔄 WebSocket connections for real-time updates
+- 🛡️ Type-safe API integration with TypeScript
+- 🚨 Comprehensive error handling
 
 ## 🤝 Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 💬 Support
+
+- 📖 [Documentation](docs/)
+- 🐛 [Issue Tracker](../../issues)
+- 📧 [Contact Team](mailto:team@libraryofalexandria.ai)
+- 💻 Open an issue in the GitHub repository or contact the maintainers
 
 ## 🙏 Acknowledgments
 
@@ -234,12 +186,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 🎨 Built with Streamlit's amazing framework
 - 🧠 Powered by Groq's LLM capabilities
 - 💫 Special thanks to the open-source community
-
-## 💬 Support
-
-- 📖 [Documentation](docs/)
-- 🐛 [Issue Tracker](../../issues)
-- 📧 [Contact Team](mailto:team@libraryofalexandria.ai)
 
 ---
 
