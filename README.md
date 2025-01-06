@@ -16,6 +16,7 @@
 - 🔄 Dynamic Content Processing
 - 🧠 Context-Aware Categorization
 - 📱 Modern Streamlit Interface
+- 🔮 Vector Similarity Search
 
 ## 🧩 Components
 
@@ -27,12 +28,14 @@
 - **🚌 Message Bus**: Asynchronous communication system between agents
 - **📊 Performance Monitor**: System-wide metrics and resource tracking
 - **🔒 Security Manager**: Access control and data protection
+- **💾 Vector Store**: ChromaDB-powered semantic search and retrieval
 
 ## 📋 Prerequisites
 
 - 🐍 Python 3.8 or higher
 - 🌱 Virtual environment (recommended)
 - 🔑 Groq API key for AI capabilities
+- 🗄 ChromaDB (v0.4.22 or higher)
 - 🗄️ PostgreSQL (optional, for advanced storage)
 - 📦 Docker (recommended for deployment)
 
@@ -79,6 +82,7 @@ Required environment variables:
 - `📝 LOG_LEVEL`: Recommended INFO in production
 - `🔒 SECURITY_KEY`: For secure communications
 - `📊 MONITORING_ENABLED`: Enable performance tracking
+- `💾 CHROMA_DB_DIR`: ChromaDB storage directory
 - Other variables as specified in .env.example
 
 ## 🎮 Running the Application
@@ -129,6 +133,14 @@ Access the application at: `http://localhost:8501`
 - 🤖 AI-powered tag suggestions
 - 🧠 Context-aware categorization
 - 🔗 Dynamic relationship management
+
+### 💾 Vector Store
+
+- 📚 ChromaDB-powered semantic storage
+- 🔍 Efficient similarity search
+- 📊 Vector embeddings management
+- 🔄 Real-time updates and indexing
+- 🎯 Contextual retrieval
 
 ## 👨‍💻 Development
 
