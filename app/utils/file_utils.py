@@ -1,223 +1,173 @@
-"""File handling utilities for the Library of Alexandria."""
+"""File handling utilities."""
 
-import os
-from pathlib import Path
-from typing import Generator, BinaryIO, Union, Optional, List
-import hashlib
-from contextlib import contextmanager
-import shutil
+from typing import List, Set, Optional
 import logging
-import mmap
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
+from pathlib import Path
+import tempfile
+import shutil
+import aiofiles
+import asyncio
+from datetime import datetime, timedelta
+import mimetypes
+from fastapi import UploadFile
 
 logger = logging.getLogger(__name__)
 
-class FileOperationError(Exception):
-    """Custom exception for file operations."""
-    pass
+# Global set to track temporary files
+temp_files: Set[Path] = set()
+temp_cleanup_lock = asyncio.Lock()
 
-@contextmanager
-def safe_file_ops(file_path: Union[str, Path], mode: str = 'r', encoding: Optional[str] = None):
-    """Safe file operation context manager.
+def get_file_type(file_path: Path) -> str:
+    """Get the type of a file based on its extension."""
+    mime_type, _ = mimetypes.guess_type(str(file_path))
     
-    Args:
-        file_path: Path to the file
-        mode: File open mode
-        encoding: File encoding
+    if mime_type:
+        if mime_type.startswith('text/markdown'):
+            return 'md'
+        elif mime_type.startswith('text/html'):
+            return 'html'
+        elif mime_type.startswith('application/pdf'):
+            return 'pdf'
+        elif mime_type.startswith('text/'):
+            return 'txt'
+        elif mime_type.startswith(('application/x-python', 'text/x-python')):
+            return 'code'
     
-    Yields:
-        File object
-    """
-    file_path = Path(file_path)
+    # Fallback to extension
+    ext = file_path.suffix.lower().lstrip('.')
+    if ext in ['md', 'markdown']:
+        return 'md'
+    elif ext in ['html', 'htm']:
+        return 'html'
+    elif ext == 'pdf':
+        return 'pdf'
+    elif ext in ['txt', 'text']:
+        return 'txt'
+    elif ext in ['py', 'js', 'java', 'cpp', 'c', 'rs', 'go', 'rb']:
+        return 'code'
     
+    raise ValueError(f"Unsupported file type: {file_path}")
+
+async def save_upload_file_temporarily(upload_file: UploadFile) -> Path:
+    """Save an uploaded file to a temporary location."""
     try:
-        if 'w' in mode:
-            # Create directory if it doesn't exist
-            file_path.parent.mkdir(parents=True, exist_ok=True)
+        suffix = Path(upload_file.filename).suffix
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            # Read in chunks to handle large files
+            async with aiofiles.open(tmp.name, 'wb') as f:
+                while chunk := await upload_file.read(8192):
+                    await f.write(chunk)
             
-            # Create backup if file exists
-            if file_path.exists():
-                backup_path = file_path.with_suffix(file_path.suffix + '.bak')
-                shutil.copy2(file_path, backup_path)
-        
-        with open(file_path, mode, encoding=encoding) as f:
-            yield f
+            tmp_path = Path(tmp.name)
+            async with temp_cleanup_lock:
+                temp_files.add(tmp_path)
+            return tmp_path
             
     except Exception as e:
-        logger.error(f"Error during file operation: {str(e)}")
+        logger.error(f"Error saving upload file: {str(e)}")
+        raise
+
+async def cleanup_temp_files(paths: Optional[List[Path]] = None):
+    """Clean up temporary files."""
+    async with temp_cleanup_lock:
+        to_remove = set(paths) if paths else temp_files.copy()
         
-        # Restore from backup if writing
-        if 'w' in mode and file_path.exists():
-            backup_path = file_path.with_suffix(file_path.suffix + '.bak')
-            if backup_path.exists():
-                shutil.copy2(backup_path, file_path)
-                
-        raise FileOperationError(f"File operation failed: {str(e)}")
+        for path in to_remove:
+            try:
+                if path.exists():
+                    path.unlink()
+                temp_files.discard(path)
+            except Exception as e:
+                logger.error(f"Error cleaning up temp file {path}: {str(e)}")
+
+async def ensure_directory(path: Path):
+    """Ensure a directory exists."""
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        logger.error(f"Error creating directory {path}: {str(e)}")
+        raise
+
+async def safe_move_file(source: Path, dest: Path):
+    """Safely move a file with error handling."""
+    try:
+        # Ensure destination directory exists
+        await ensure_directory(dest.parent)
         
-    finally:
-        # Clean up backup
-        if 'w' in mode:
-            backup_path = file_path.with_suffix(file_path.suffix + '.bak')
-            if backup_path.exists():
-                backup_path.unlink()
-
-def chunk_reader(
-    file_path: Union[str, Path],
-    chunk_size: int = 1024 * 1024,  # 1MB
-    use_mmap: bool = True
-) -> Generator[bytes, None, None]:
-    """Memory-efficient file reader that yields chunks of the file.
-    
-    Args:
-        file_path: Path to the file
-        chunk_size: Size of chunks to read
-        use_mmap: Whether to use memory mapping for large files
-    
-    Yields:
-        File chunks as bytes
-    """
-    file_path = Path(file_path)
-    file_size = file_path.stat().st_size
-    
-    with open(file_path, 'rb') as f:
-        if use_mmap and file_size > chunk_size * 10:  # Use mmap for large files
-            with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-                for i in range(0, file_size, chunk_size):
-                    yield mm[i:min(i + chunk_size, file_size)]
-        else:
-            while chunk := f.read(chunk_size):
-                yield chunk
-
-def calculate_file_hash(
-    file_path: Union[str, Path],
-    hash_type: str = 'sha256',
-    chunk_size: int = 1024 * 1024  # 1MB
-) -> str:
-    """Calculate file hash efficiently.
-    
-    Args:
-        file_path: Path to the file
-        hash_type: Hash algorithm to use
-        chunk_size: Size of chunks to read
-    
-    Returns:
-        File hash as string
-    """
-    hash_func = getattr(hashlib, hash_type)()
-    
-    for chunk in chunk_reader(file_path, chunk_size):
-        hash_func.update(chunk)
+        # Move file
+        shutil.move(str(source), str(dest))
         
-    return hash_func.hexdigest()
-
-def process_files_in_parallel(
-    file_paths: List[Union[str, Path]],
-    processor_func: callable,
-    max_workers: Optional[int] = None
-) -> List:
-    """Process multiple files in parallel.
-    
-    Args:
-        file_paths: List of file paths to process
-        processor_func: Function to process each file
-        max_workers: Maximum number of worker threads
-    
-    Returns:
-        List of processing results
-    """
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        results = list(executor.map(processor_func, file_paths))
-    return results
-
-def ensure_dir(path: Union[str, Path]) -> Path:
-    """Ensure directory exists and create if it doesn't.
-    
-    Args:
-        path: Directory path
-    
-    Returns:
-        Path object for the directory
-    """
-    path = Path(path)
-    path.mkdir(parents=True, exist_ok=True)
-    return path
-
-def get_file_info(file_path: Union[str, Path]) -> dict:
-    """Get detailed file information.
-    
-    Args:
-        file_path: Path to the file
-    
-    Returns:
-        Dictionary containing file information
-    """
-    file_path = Path(file_path)
-    stat = file_path.stat()
-    
-    return {
-        'name': file_path.name,
-        'extension': file_path.suffix,
-        'size': stat.st_size,
-        'created': stat.st_ctime,
-        'modified': stat.st_mtime,
-        'accessed': stat.st_atime,
-        'is_file': file_path.is_file(),
-        'is_dir': file_path.is_dir(),
-        'absolute_path': str(file_path.absolute())
-    }
-
-def clean_directory(
-    directory: Union[str, Path],
-    pattern: str = '*',
-    recursive: bool = False,
-    exclude: Optional[List[str]] = None
-) -> None:
-    """Clean a directory by removing files matching pattern.
-    
-    Args:
-        directory: Directory to clean
-        pattern: Glob pattern for files to remove
-        recursive: Whether to clean subdirectories
-        exclude: List of patterns to exclude
-    """
-    directory = Path(directory)
-    exclude = exclude or []
-    
-    for item in directory.glob(pattern):
-        if any(item.match(exc) for exc in exclude):
-            continue
+        # Remove from temp files if it was one
+        async with temp_cleanup_lock:
+            temp_files.discard(source)
             
-        if item.is_file():
-            item.unlink()
-        elif item.is_dir() and recursive:
-            shutil.rmtree(item)
+    except Exception as e:
+        logger.error(f"Error moving file {source} to {dest}: {str(e)}")
+        raise
 
-def create_unique_filename(
-    directory: Union[str, Path],
-    base_name: str,
-    extension: str
-) -> Path:
-    """Create a unique filename in the specified directory.
+async def get_file_info(path: Path) -> dict:
+    """Get information about a file."""
+    try:
+        stats = path.stat()
+        return {
+            "name": path.name,
+            "extension": path.suffix.lstrip('.'),
+            "size": stats.st_size,
+            "created": datetime.fromtimestamp(stats.st_ctime).isoformat(),
+            "modified": datetime.fromtimestamp(stats.st_mtime).isoformat(),
+            "type": get_file_type(path)
+        }
+    except Exception as e:
+        logger.error(f"Error getting file info for {path}: {str(e)}")
+        raise
+
+class TempFileManager:
+    """Context manager for temporary file handling."""
     
-    Args:
-        directory: Target directory
-        base_name: Base filename
-        extension: File extension
+    def __init__(self, suffix: Optional[str] = None):
+        self.suffix = suffix
+        self.path: Optional[Path] = None
     
-    Returns:
-        Path object with unique filename
-    """
-    directory = Path(directory)
-    counter = 1
+    async def __aenter__(self) -> Path:
+        """Create and track temporary file."""
+        try:
+            tmp = tempfile.NamedTemporaryFile(delete=False, suffix=self.suffix)
+            self.path = Path(tmp.name)
+            tmp.close()
+            
+            async with temp_cleanup_lock:
+                temp_files.add(self.path)
+            
+            return self.path
+            
+        except Exception as e:
+            logger.error(f"Error creating temp file: {str(e)}")
+            raise
     
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Clean up temporary file."""
+        if self.path:
+            await cleanup_temp_files([self.path])
+
+async def periodic_temp_cleanup():
+    """Periodically clean up old temporary files."""
     while True:
-        if counter == 1:
-            file_path = directory / f"{base_name}{extension}"
-        else:
-            file_path = directory / f"{base_name}_{counter}{extension}"
-            
-        if not file_path.exists():
-            return file_path
-            
-        counter += 1 
+        try:
+            current_time = datetime.now()
+            async with temp_cleanup_lock:
+                for path in temp_files.copy():
+                    try:
+                        if path.exists():
+                            stats = path.stat()
+                            created_time = datetime.fromtimestamp(stats.st_ctime)
+                            if current_time - created_time > timedelta(hours=1):
+                                path.unlink()
+                                temp_files.discard(path)
+                    except Exception as e:
+                        logger.error(f"Error cleaning up temp file {path}: {str(e)}")
+                        temp_files.discard(path)
+        
+        except Exception as e:
+            logger.error(f"Error in periodic temp cleanup: {str(e)}")
+        
+        await asyncio.sleep(3600)  # Run every hour 

@@ -1,140 +1,41 @@
-"""Processing management routes for the Library of Alexandria API."""
+"""Routes for document processing and WebSocket connections."""
 
-from fastapi import APIRouter, HTTPException
-from typing import Dict, List
-import logging
-from datetime import datetime, timedelta
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
+from app.api.websocket.processing_manager import manager
+from typing import Dict, Any
+import uuid
 
-from app.core.document_processor import DocumentProcessor
-from app.utils.performance_utils import get_system_metrics
+router = APIRouter(prefix="/processing", tags=["processing"])
 
-logger = logging.getLogger(__name__)
-router = APIRouter()
-
-@router.get("/metrics")
-async def get_processing_metrics() -> Dict:
-    """
-    Get current processing metrics including system stats.
-    
-    Returns:
-        Dict containing processing metrics and system stats
-    """
-    processor = DocumentProcessor()
-    system_metrics = get_system_metrics()
-    
-    return {
-        "processing_stats": processor.get_statistics(),
-        "system_metrics": system_metrics,
-        "timestamp": datetime.utcnow().isoformat()
-    }
-
-@router.get("/active")
-async def get_active_processes() -> List[Dict]:
-    """
-    Get list of currently active processing batches.
-    
-    Returns:
-        List of active processing batches with their status
-    """
-    processor = DocumentProcessor()
-    active_batches = []
-    
-    for batch_id, stats in processor.get_active_batches().items():
-        active_batches.append({
-            "batch_id": batch_id,
-            "status": stats["status"],
-            "progress": stats["progress_percentage"],
-            "started_at": stats["start_time"],
-            "files_processed": stats["processed_files"],
-            "total_files": stats["total_files"],
-            "duration": str(timedelta(seconds=stats["duration_seconds"]))
-        })
-    
-    return active_batches
-
-@router.get("/history")
-async def get_processing_history(
-    limit: int = 50,
-    offset: int = 0
-) -> List[Dict]:
-    """
-    Get processing history with pagination.
-    
-    Args:
-        limit: Maximum number of records to return
-        offset: Number of records to skip
-        
-    Returns:
-        List of historical processing records
-    """
-    processor = DocumentProcessor()
-    history = processor.get_processing_history(limit, offset)
-    
-    return [{
-        "batch_id": record["batch_id"],
-        "status": record["status"],
-        "started_at": record["start_time"],
-        "completed_at": record.get("end_time"),
-        "files_processed": record["processed_files"],
-        "total_files": record["total_files"],
-        "success_rate": record["success_rate"],
-        "errors": record["errors"],
-        "duration": str(timedelta(seconds=record["duration_seconds"]))
-    } for record in history]
-
-@router.get("/performance")
-async def get_performance_stats() -> Dict:
-    """
-    Get detailed performance statistics.
-    
-    Returns:
-        Dict containing performance metrics
-    """
-    processor = DocumentProcessor()
-    performance_stats = processor.get_performance_stats()
-    
-    return {
-        "processing_speed": {
-            "average_time_per_file": performance_stats["avg_time_per_file"],
-            "files_per_second": performance_stats["files_per_second"]
-        },
-        "memory_usage": {
-            "current": performance_stats["current_memory"],
-            "peak": performance_stats["peak_memory"]
-        },
-        "cache_stats": {
-            "hit_rate": performance_stats["cache_hit_rate"],
-            "size": performance_stats["cache_size"]
-        },
-        "error_rates": {
-            "total_errors": performance_stats["total_errors"],
-            "error_rate": performance_stats["error_rate"]
-        },
-        "timestamp": datetime.utcnow().isoformat()
-    }
-
-@router.post("/optimize")
-async def optimize_processing() -> Dict:
-    """
-    Trigger processing optimization (cache cleanup, memory optimization).
-    
-    Returns:
-        Dict containing optimization results
-    """
-    processor = DocumentProcessor()
-    
+@router.websocket("/ws/{batch_id}")
+async def websocket_endpoint(websocket: WebSocket, batch_id: str):
+    """WebSocket endpoint for real-time processing updates."""
+    await manager.connect(websocket, batch_id)
     try:
-        # Perform optimization
-        optimization_results = await processor.optimize()
-        
-        return {
-            "success": True,
-            "optimizations": optimization_results,
-            "timestamp": datetime.utcnow().isoformat()
-        }
-    except Exception as e:
-        logger.error(f"Optimization error: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Optimization failed: {str(e)}"
-        ) 
+        while True:
+            # Keep connection alive and handle any client messages
+            data = await websocket.receive_json()
+            if data.get("type") == "ping":
+                await websocket.send_json({"type": "pong"})
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, batch_id)
+    except Exception:
+        manager.disconnect(websocket, batch_id)
+
+@router.get("/status/{batch_id}")
+async def get_processing_status(batch_id: str) -> Dict[str, Any]:
+    """Get the current status of a processing batch."""
+    return manager.get_status(batch_id)
+
+@router.post("/cancel/{batch_id}")
+async def cancel_processing(batch_id: str):
+    """Cancel an ongoing processing batch."""
+    status = manager.get_status(batch_id)
+    if status["status"] == "not_found":
+        raise HTTPException(status_code=404, detail="Batch not found")
+    
+    await manager.broadcast_status(batch_id, {
+        "status": "cancelled",
+        "message": "Processing cancelled by user"
+    })
+    return {"status": "cancelled", "batch_id": batch_id} 

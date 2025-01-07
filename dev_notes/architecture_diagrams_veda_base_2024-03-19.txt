@@ -1,0 +1,346 @@
+# 📊 Library of Alexandria - System Architecture Diagrams
+Date: 2024-03-19
+Version: 1.0.0
+
+## 1. System Context Diagram
+```mermaid
+graph TD
+    %% External Users and Systems
+    User[fa:fa-user End User]
+    Admin[fa:fa-user-gear Administrator]
+    DevOps[fa:fa-user-cog DevOps Team]
+    
+    %% Core System
+    VedaBase[Library of Alexandria]
+    
+    %% External Services
+    Groq[fa:fa-brain Groq LLM API]
+    ChromaDB[fa:fa-database ChromaDB]
+    Redis[fa:fa-memory Redis Cache]
+    Logfire[fa:fa-chart-line Logfire Monitoring]
+    
+    %% Interactions
+    User --> |Upload Documents| VedaBase
+    User --> |Search Knowledge| VedaBase
+    User --> |Real-time Updates| VedaBase
+    Admin --> |System Management| VedaBase
+    DevOps --> |Monitoring & Maintenance| VedaBase
+    
+    %% External Service Connections
+    VedaBase --> |AI Processing| Groq
+    VedaBase --> |Vector Storage| ChromaDB
+    VedaBase --> |Caching| Redis
+    VedaBase --> |Monitoring| Logfire
+```
+
+## 2. Component Architecture
+```mermaid
+graph LR
+    %% Frontend Layer
+    subgraph Frontend
+        Next[Next.js Web UI]
+        Streamlit[Streamlit Admin UI]
+        WebSocket[WebSocket Client]
+    end
+    
+    %% API Layer
+    subgraph API
+        FastAPI[FastAPI Server]
+        WSManager[WebSocket Manager]
+        APIGateway[API Gateway]
+    end
+    
+    %% Core Services
+    subgraph Core
+        DocProcessor[Document Processor]
+        AgentSystem[Multi-Agent System]
+        KnowledgeGraph[Knowledge Graph]
+        VectorStore[Vector Store]
+    end
+    
+    %% Agent System
+    subgraph Agents
+        LibrarianPrime[Librarian Prime]
+        ContentCurator[Content Curator]
+        TaxonomyMaster[Taxonomy Master]
+        ConnectionWeaver[Connection Weaver]
+        AnalyticsSage[Analytics Sage]
+    end
+    
+    %% Connections
+    Next --> |HTTP/WS| APIGateway
+    Streamlit --> |HTTP| APIGateway
+    WebSocket --> WSManager
+    
+    APIGateway --> FastAPI
+    WSManager --> AgentSystem
+    
+    FastAPI --> DocProcessor
+    FastAPI --> AgentSystem
+    
+    DocProcessor --> VectorStore
+    AgentSystem --> KnowledgeGraph
+    AgentSystem --> VectorStore
+    
+    LibrarianPrime --> |Orchestration| AgentSystem
+    ContentCurator --> AgentSystem
+    TaxonomyMaster --> AgentSystem
+    ConnectionWeaver --> AgentSystem
+    AnalyticsSage --> AgentSystem
+```
+
+## 3. Data Flow Architecture
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant API as API Gateway
+    participant DP as Document Processor
+    participant LP as Librarian Prime
+    participant AG as Agent System
+    participant VS as Vector Store
+    participant KG as Knowledge Graph
+    
+    U->>API: Upload Document
+    API->>DP: Process Document
+    
+    par Document Processing
+        DP->>VS: Generate & Store Embeddings
+        DP->>LP: Notify New Document
+    end
+    
+    LP->>AG: Delegate Processing Tasks
+    
+    par Agent Processing
+        AG->>VS: Query Vector Store
+        AG->>KG: Update Knowledge Graph
+    end
+    
+    AG->>LP: Processing Complete
+    LP->>API: Send Status Update
+    API->>U: Return Results
+```
+
+## 4. Deployment Architecture
+```mermaid
+graph TD
+    %% Infrastructure Components
+    subgraph Cloud Infrastructure
+        subgraph Kubernetes Cluster
+            %% Frontend Services
+            subgraph Frontend
+                WebUI[Web UI Pod]
+                AdminUI[Admin UI Pod]
+            end
+            
+            %% Backend Services
+            subgraph Backend
+                API[API Service]
+                Agents[Agent System]
+                Processor[Document Processor]
+            end
+            
+            %% Data Services
+            subgraph Data Layer
+                ChromaDB[Vector Store]
+                Redis[Cache]
+                PostgreSQL[Metadata Store]
+            end
+        end
+        
+        %% External Services
+        Groq[Groq LLM]
+        Logfire[Monitoring]
+        
+        %% Load Balancers
+        NGINX[NGINX Ingress]
+    end
+    
+    %% Network Flow
+    Internet((Internet)) --> NGINX
+    NGINX --> WebUI
+    NGINX --> AdminUI
+    WebUI --> API
+    AdminUI --> API
+    API --> Agents
+    API --> Processor
+    Agents --> ChromaDB
+    Processor --> ChromaDB
+    Agents --> Redis
+    Agents --> PostgreSQL
+    Agents --> Groq
+    
+    %% Monitoring
+    Kubernetes Cluster --> Logfire
+```
+
+## 5. AI/ML Pipeline Architecture
+```mermaid
+graph LR
+    %% Data Ingestion
+    subgraph Ingestion
+        Upload[Document Upload]
+        Extract[Content Extraction]
+        Clean[Data Cleaning]
+    end
+    
+    %% Processing
+    subgraph Processing
+        Embed[Embedding Generation]
+        Index[Vector Indexing]
+        Analyze[Content Analysis]
+    end
+    
+    %% AI Services
+    subgraph AI Layer
+        LLM[Groq LLM]
+        Classifier[Document Classifier]
+        NER[Named Entity Recognition]
+    end
+    
+    %% Knowledge Base
+    subgraph Knowledge Base
+        VectorDB[ChromaDB]
+        GraphDB[Knowledge Graph]
+        Cache[Redis Cache]
+    end
+    
+    %% Flow
+    Upload --> Extract
+    Extract --> Clean
+    Clean --> Embed
+    Clean --> Analyze
+    
+    Embed --> Index
+    Index --> VectorDB
+    
+    Analyze --> LLM
+    LLM --> Classifier
+    LLM --> NER
+    
+    Classifier --> GraphDB
+    NER --> GraphDB
+    
+    VectorDB --> Cache
+    GraphDB --> Cache
+```
+
+## 6. Event Flow Diagram
+```mermaid
+stateDiagram-v2
+    [*] --> Uploaded
+    
+    Uploaded --> Processing: Start Processing
+    Processing --> Extracting: Content Extraction
+    Processing --> Failed: Error
+    
+    Extracting --> Analyzing: Content Analysis
+    Extracting --> Failed: Error
+    
+    Analyzing --> Indexing: Generate Embeddings
+    Analyzing --> Failed: Error
+    
+    Indexing --> Enriching: Knowledge Graph Update
+    Indexing --> Failed: Error
+    
+    Enriching --> Complete: Success
+    Enriching --> Failed: Error
+    
+    Failed --> RetryQueue: Retry Policy
+    RetryQueue --> Processing: Retry
+    RetryQueue --> Dead: Max Retries
+    
+    Complete --> [*]
+    Dead --> [*]
+```
+
+## 7. Security Architecture
+```mermaid
+graph TD
+    %% External Access
+    subgraph Internet Zone
+        Client[Client Application]
+        AdminClient[Admin Interface]
+    end
+    
+    %% DMZ
+    subgraph DMZ
+        WAF[Web Application Firewall]
+        LB[Load Balancer]
+        AuthProxy[Auth Proxy]
+    end
+    
+    %% Application Zone
+    subgraph Application Zone
+        API[API Services]
+        AgentSystem[Agent System]
+        DocProcessor[Document Processor]
+    end
+    
+    %% Data Zone
+    subgraph Secure Data Zone
+        Secrets[Secret Manager]
+        VectorStore[Vector Store]
+        MetadataDB[Metadata Store]
+    end
+    
+    %% Security Controls
+    Client --> WAF
+    AdminClient --> WAF
+    WAF --> LB
+    LB --> AuthProxy
+    AuthProxy --> |RBAC| API
+    
+    API --> |Service Account| AgentSystem
+    API --> |Service Account| DocProcessor
+    
+    AgentSystem --> |Encrypted| VectorStore
+    DocProcessor --> |Encrypted| VectorStore
+    
+    AgentSystem --> |Secure Access| Secrets
+    DocProcessor --> |Secure Access| Secrets
+    
+    API --> |Encrypted| MetadataDB
+```
+
+## Notes
+
+### Component Descriptions
+- **Frontend Layer**: Next.js for main UI, Streamlit for admin interface
+- **API Layer**: FastAPI with WebSocket support for real-time updates
+- **Core Services**: Document processing, multi-agent system, knowledge management
+- **Data Layer**: ChromaDB for vector storage, Redis for caching
+- **AI Services**: Groq LLM integration, custom embedding generation
+
+### Interaction Patterns
+- Event-driven communication between components
+- Asynchronous document processing
+- Real-time updates via WebSocket
+- Batch processing for large documents
+
+### Security Considerations
+- WAF for external access protection
+- RBAC for access control
+- Encrypted data storage
+- Secure secret management
+- Service mesh for internal communication
+
+### Scaling Points
+- Kubernetes horizontal scaling
+- Redis cache layer
+- ChromaDB clustering
+- Load balancing
+- Message queue for batch processing
+
+### Failure Modes
+- Document processing errors
+- AI service unavailability
+- Database connection issues
+- Network timeouts
+- Cache misses
+
+### Recovery Procedures
+- Automatic retry mechanisms
+- Circuit breakers for external services
+- Dead letter queues
+- Backup and restore procedures
+- State recovery mechanisms 
