@@ -1,203 +1,223 @@
-# 📚 Library of Alexandria - Knowledge Article Factory
+# 📚 Veda Base
 
-A powerful AI-driven document processing and knowledge management system that transforms various document formats into an interconnected knowledge base with semantic search capabilities and an advanced tiered tagging system.
+## Vision
 
-## 🎯 Features
-
-- 🔄 Multi-format document conversion
-- 🤖 AI-powered content analysis and tag suggestions
-- 🏷️ Advanced 5-tier tagging system with controlled vocabulary
-- 🕸️ Interactive knowledge graph visualization
-- 📊 Semantic search capabilities
-- 🎓 AI Librarian Assistant
-- 🎨 Beautiful, responsive UI with Streamlit
-
-## 🛠️ Technical Stack
-
-- **Frontend**: Streamlit
-- **Data Processing**: Python 3.11+
-- **AI/ML**:
-  - LangChain for document processing
-  - Groq's Mixtral-8x7b for tag suggestions
-  - Transformers for content analysis
-- **Visualization**:
-  - Plotly for data visualization
-  - PyVis for knowledge graphs
-- **Storage**: ChromaDB for vector storage
-- **API Integration**: FastAPI
-- **Document Processing**:
-  - PyPDF for PDF files
-  - python-docx for Word documents
-  - python-pptx for PowerPoint files
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.9 or higher
-- Git
-- Virtual Environment (recommended)
-- Groq API key (for AI features)
-
-### 🔧 Installation
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/yourusername/Library-of-Alexandria.git
-   cd Library-of-Alexandria
-   ```
-
-2. **Set up virtual environment**
-
-   ```bash
-   python -m venv venv
-   
-   # Windows
-   .\venv\Scripts\activate
-   
-   # Linux/MacOS
-   source venv/bin/activate
-   ```
-
-3. **Install dependencies**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Environment setup**
-   Create a `.env` file in the root directory:
-
-   ```env
-   GROQ_API_KEY=your_groq_api_key
-   ```
-
-### 🏃‍♂️ Running the Application
-
-1. **Start the Streamlit app**
-
-   ```bash
-   streamlit run streamlit_app.py
-   ```
-
-2. **Access the web interface**
-   - Open your browser and navigate to `http://localhost:8501`
-   - The app will also provide a network URL for local network access
-
-## 📁 Project Structure
-
-```curl
-Library-of-Alexandria/
-├── streamlit_app.py              # Main Streamlit application
-├── requirements.txt              # Project dependencies
-├── .env                         # Environment variables
-├── RAG_init/                   # Initial document storage
-├── RAG_refined/                # Processed knowledge articles
-└── app/
-    ├── markdown_knowledge_object_factory.py
-    ├── tagging_system.py        # Core tagging system implementation
-    └── tag_suggester.py         # AI-powered tag suggestion system
-```
-
-## 🎮 Advanced Tagging System
-
-The application implements a sophisticated 5-tier tagging system with controlled vocabulary and AI-powered suggestions.
-
-### Tag Tiers and Categories
-
-1. ⚪ **Common Tags** (Basic Categorization)
-   - **Domain**: Primary field/discipline (e.g., ai, history, psychology)
-   - **Era**: Time period (e.g., renaissance, 21st-century)
-   - **Format**: Content type (e.g., article, book, podcast)
-
-2. 🟢 **Fine Tags** (General Themes)
-   - **Themes**: High-level ideas (e.g., innovation, ethics)
-   - **Concepts**: Theoretical frameworks (e.g., neural-networks, stoicism)
-   - **Patterns**: Recurring models (e.g., feedback-loops, fractals)
-
-3. 🔵 **Rare Tags** (Specific Topics)
-   - **Topics**: Specialized areas (e.g., adversarial-attacks)
-   - **Terminology**: Key terms (e.g., rag, latent-space)
-   - **Methods**: Techniques (e.g., lstm-optimization)
-
-4. 🟣 **Epic Tags** (Insights & Connections)
-   - **Insights**: Key realizations
-   - **Connections**: Cross-disciplinary links
-   - **Innovations**: Novel approaches
-
-5. 🟡 **Legendary Tags** (Core Principles)
-   - **Principles**: Universal truths (e.g., conservation-of-energy)
-   - **Paradigms**: Foundational frameworks (e.g., heros-journey)
-
-### AI-Powered Tag Suggestions
-
-- Automatic tag generation using Groq's Mixtral-8x7b model
-- Confidence scores for suggested tags
-- Explanations for tag relevance
-- Tag validation and cleaning
-- Controlled vocabulary enforcement
-
-### Tag Network Features
-
-- Bidirectional linking between related content
-- Interactive knowledge graph visualization
-- Tag relationship discovery
-- Content recommendation based on tag relationships
-
-## 🔧 Troubleshooting
-
-Common issues and solutions:
-
-1. **Installation Issues**
-
-   ```bash
-   # If you encounter SSL errors
-   pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
-   ```
-
-2. **Memory Errors**
-   - Reduce batch size in processing
-   - Clear RAG directories
-   - Restart the application
-
-3. **Graph Visualization Issues**
-   - Clear browser cache
-   - Try a different browser
-   - Reduce number of displayed nodes
-
-4. **Tag Suggestion Issues**
-   - Ensure GROQ_API_KEY is properly set
-   - Check API rate limits
-   - Verify content length is within model limits
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- Inspired by the Great Library of Alexandria
-- Built with Streamlit's amazing framework
-- Powered by Groq's LLM capabilities
-- Special thanks to the open-source community
-
-## 📞 Support
-
-For support and questions:
-
-- 📧 Open an issue in the repository
-- 💬 Contact the development team
-- 📚 Check the documentation
+### *Preserving Knowledge. Empowering Devotion. Inspiring Change.*
 
 ---
 
-Made with ❤️ by the Knowledge Factory Team
+### **Overview**  
+
+**Veda Base** is a next-generation document processing and knowledge management platform inspired by the timeless wisdom of the Vedic tradition and the values of spiritual warriors. Rooted in principles of devotion (*bhakti*), accountability, and integrity, Veda Base combines cutting-edge technology with a commitment to preserving and organizing knowledge for spiritual, personal, and collective growth.
+
+This application bridges ancient wisdom with modern innovation, offering tools to process, analyze, and interconnect information seamlessly. Whether you are working with sacred texts, modern data, or anything in between, **Veda Base** empowers you to create an organized, ethical, and impactful knowledge repository.
+
+---
+
+### **Mission**  
+
+Our mission is to:
+
+- Preserve sacred and modern knowledge with reverence and precision.
+- Empower individuals and communities to access, process, and share wisdom responsibly.
+- Uphold the values of **Loyalty, Duty, Respect, Selfless Service, Honor, Integrity, and Personal Courage** in every aspect of our platform.
+- Provide tools that inspire accountability, transparency, and systemic change in organizations and communities.
+
+**Veda Base** is more than software—it's a commitment to truth, justice, and service.
+
+---
+
+### **Features**
+
+#### **Document Processing**
+
+- 📄 Multi-format document support (PDF, DOCX, MD, TEX, HTML)  
+- 📊 Table detection and extraction from PDFs  
+- 🖼️ Image extraction and processing  
+- 🖍️ Semantic content analysis  
+- 🔄 Real-time processing status updates  
+- 📦 Batch processing with progress tracking  
+
+#### **Knowledge Management**
+
+- 🤖 Multi-Agent System Architecture  
+- 🕸️ Knowledge Graph Generation  
+- 🏷️ Taxonomy Management  
+- 🔍 Semantic Search and Analysis  
+- 📨 Asynchronous Message Bus  
+
+#### **User Interface**
+
+- ⚛️ Modern React-based UI  
+- 🔄 Real-time updates via WebSocket  
+- 📱 Responsive design  
+- 📊 Live processing statistics  
+- 🎯 Interactive progress tracking  
+- ❌ Error handling and recovery  
+
+---
+
+### **Core Values: A Spiritual Warrior's Code**
+
+1. **Loyalty:** A steadfast commitment to preserving truth and supporting communities.  
+2. **Duty:** Ensuring that Veda Base serves its users with precision and reliability.  
+3. **Respect:** Honoring sacred texts, user input, and ethical data handling.  
+4. **Selfless Service:** Offering tools that benefit individuals and communities without personal gain.  
+5. **Honor:** Striving for excellence and transparency in all we do.  
+6. **Integrity:** Upholding the highest moral and ethical standards in development and deployment.  
+7. **Personal Courage:** Tackling challenges with determination, guided by devotion to truth.
+
+---
+
+### **Tech Stack**
+
+#### **Frontend**
+
+- ⚛️ Next.js 14  
+- 💅 React 18 with TypeScript  
+- 🎨 TailwindCSS  
+- 🔄 React Query  
+- 🔌 Socket.io Client  
+- 📊 Real-time data visualization  
+
+#### **Backend**
+
+- 🕐 Python 3.8+  
+- ⚡ FastAPI  
+- 🔄 WebSocket support  
+- 📓 ChromaDB for vector storage  
+- 🔄 AsyncIO for concurrent processing  
+- 🖍️ PyMuPDF for PDF processing  
+- 📊 Camelot for table extraction  
+
+---
+
+### **Core Components**
+
+#### **Document Processing Engine**
+
+- 📁 Multi-format document handler  
+- 📊 Table detection system  
+- 🖼️ Image extraction  
+- 🖍️ Content analysis  
+- 🔄 Batch processing manager  
+
+#### **Agent System**
+
+- 👨‍💼 Librarian Prime (System Orchestrator)  
+- 🤔 Domain Specialists  
+- 🖍️ Document Processors  
+- 🌐 Knowledge Graph Manager  
+- 🗂️ Taxonomy Master  
+
+#### **Real-time Processing**
+
+- 🔄 WebSocket Manager  
+- 📊 Progress Tracking  
+- 🛒 Status Updates  
+- ❌ Error Handling  
+- 🤧 Cleanup Management  
+
+---
+
+### **Getting Started**
+
+#### **Prerequisites**
+
+- 🕐 Python 3.8 or higher  
+- 🌱 Node.js 18 or higher  
+- 📦 npm or yarn  
+- 🗋 ChromaDB  
+- 🐘 PostgreSQL (optional)  
+
+#### **Backend Setup**
+
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+.\venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the backend server
+uvicorn app.main:app --reload
+```
+
+#### **Frontend Setup**
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+#### **Access Application**
+
+- 🌐 Frontend: `http://localhost:3000`  
+- 🔌 Backend API: `http://localhost:8000`  
+- 📚 API Documentation: `http://localhost:8000/docs`  
+
+---
+
+### **Project Structure**
+
+```plaintext
+veda-base/
+├── app/                    # Backend application
+│   ├── api/               # FastAPI routes and WebSocket
+│   │   ├── routes/       # API endpoints
+│   │   └── websocket/    # WebSocket handlers
+│   ├── agents/           # Multi-agent system
+│   ├── core/             # Core processing logic
+│   │   ├── document_processor.py
+│   │   └── knowledge_graph.py
+│   └── utils/            # Shared utilities
+├── frontend/             # React frontend
+│   ├── src/
+│   │   ├── app/         # Next.js pages
+│   │   ├── components/  # React components
+│   │   ├── hooks/       # Custom hooks
+│   │   ├── services/    # API integration
+│   │   └── types/       # TypeScript types
+└── docs/                 # Documentation
+```
+
+---
+
+### **Contributing**
+
+1. Fork the repository.  
+2. Create your feature branch: `git checkout -b feature/amazing-feature`.  
+3. Commit your changes: `git commit -m 'Add amazing feature'`.  
+4. Push to the branch: `git push origin feature/amazing-feature`.  
+5. Open a Pull Request.  
+
+---
+
+### **License**
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+### **Support**
+
+- 📚 Documentation  
+- 🔧 Issue Tracker  
+- 📧 Contact Team  
+
+---
+
+### **Acknowledgments**
+
+- 📚 Inspired by Srila Prabhupada's mission to preserve and share sacred knowledge.  
+- 🤖 Powered by modern AI capabilities.  
+- 💫 Built with cutting-edge web technologies.  

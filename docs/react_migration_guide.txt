@@ -1,0 +1,444 @@
+# Technical Guide: Migrating from Streamlit to React Frontend
+
+## Overview
+This document outlines the step-by-step process for migrating the Library of Alexandria's frontend from Streamlit to a modern React application.
+
+## Phase 1: Project Setup and Infrastructure (Week 1)
+
+### 1.1 Initial Setup
+```bash
+# Create new frontend directory
+mkdir -p frontend/src
+cd frontend
+
+# Initialize Next.js project with TypeScript
+npx create-next-app@latest . --typescript --tailwind --eslint
+
+# Install core dependencies
+npm install @tanstack/react-query axios socket.io-client
+npm install -D @types/socket.io-client
+```
+
+### 1.2 Project Structure
+```
+frontend/
+├── src/
+│   ├── components/        # Reusable UI components
+│   ├── services/         # API and WebSocket services
+│   ├── hooks/           # Custom React hooks
+│   ├── types/           # TypeScript interfaces
+│   ├── utils/           # Helper functions
+│   ├── styles/          # Global styles
+│   └── pages/           # Next.js pages
+```
+
+### 1.3 Core Dependencies
+- Next.js 14+
+- TailwindCSS
+- React Query
+- Socket.io-client
+- Chart.js/D3.js
+- React Dropzone
+- TypeScript
+- ESLint + Prettier
+
+## Phase 2: Backend API Development (Week 1-2)
+
+### 2.1 FastAPI Endpoints
+```python
+# app/api/routes/documents.py
+
+@router.post("/documents/upload")
+async def upload_documents(
+    files: List[UploadFile],
+    background_tasks: BackgroundTasks
+):
+    """Handle document upload and processing."""
+    
+@router.get("/documents/status/{batch_id}")
+async def get_processing_status(batch_id: str):
+    """Get document processing status."""
+    
+@router.get("/documents/results/{batch_id}")
+async def get_processing_results(batch_id: str):
+    """Get document processing results."""
+```
+
+### 2.2 WebSocket Implementation
+```python
+# app/api/websocket.py
+
+@app.websocket("/ws/processing/{batch_id}")
+async def processing_websocket(
+    websocket: WebSocket,
+    batch_id: str
+):
+    """Real-time processing updates."""
+```
+
+## Phase 3: React Components Development (Week 2-3)
+
+### 3.1 Core Components
+
+#### Document Upload
+```typescript
+// src/components/DocumentUpload/index.tsx
+import { useDropzone } from 'react-dropzone';
+
+export const DocumentUpload: React.FC = () => {
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    // Handle file upload
+  }, []);
+  
+  const { getRootProps, getInputProps } = useDropzone({ onDrop });
+  
+  return (
+    <div {...getRootProps()}>
+      <input {...getInputProps()} />
+      {/* Upload UI */}
+    </div>
+  );
+};
+```
+
+#### Processing Progress
+```typescript
+// src/components/ProcessingProgress/index.tsx
+import { useProcessingStatus } from '@/hooks/useProcessingStatus';
+
+export const ProcessingProgress: React.FC<{ batchId: string }> = ({ batchId }) => {
+  const { status, progress } = useProcessingStatus(batchId);
+  
+  return (
+    <div>
+      {/* Progress visualization */}
+    </div>
+  );
+};
+```
+
+### 3.2 API Integration
+
+```typescript
+// src/services/api.ts
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL
+});
+
+export const uploadDocuments = async (files: File[]) => {
+  const formData = new FormData();
+  files.forEach(file => formData.append('files', file));
+  
+  return api.post('/documents/upload', formData);
+};
+```
+
+### 3.3 WebSocket Integration
+
+```typescript
+// src/hooks/useWebSocket.ts
+import { useEffect, useRef } from 'react';
+import io, { Socket } from 'socket.io-client';
+
+export const useWebSocket = (batchId: string) => {
+  const socket = useRef<Socket>();
+  
+  useEffect(() => {
+    socket.current = io(`${process.env.NEXT_PUBLIC_WS_URL}/processing/${batchId}`);
+    
+    return () => {
+      socket.current?.close();
+    };
+  }, [batchId]);
+  
+  return socket.current;
+};
+```
+
+## Phase 4: State Management and Data Flow (Week 3)
+
+### 4.1 React Query Setup
+
+```typescript
+// src/pages/_app.tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Component {...pageProps} />
+    </QueryClientProvider>
+  );
+}
+```
+
+### 4.2 Custom Hooks
+
+```typescript
+// src/hooks/useDocumentProcessor.ts
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { uploadDocuments, getProcessingStatus } from '@/services/api';
+
+export const useDocumentProcessor = () => {
+  const uploadMutation = useMutation({
+    mutationFn: uploadDocuments,
+    onSuccess: (data) => {
+      // Handle successful upload
+    },
+  });
+  
+  return {
+    upload: uploadMutation.mutate,
+    isUploading: uploadMutation.isLoading,
+    error: uploadMutation.error,
+  };
+};
+```
+
+## Phase 5: UI/UX Implementation (Week 4)
+
+### 5.1 Layout and Navigation
+
+```typescript
+// src/components/Layout/index.tsx
+export const Layout: React.FC = ({ children }) => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <nav>{/* Navigation */}</nav>
+      <main className="container mx-auto py-8">
+        {children}
+      </main>
+    </div>
+  );
+};
+```
+
+### 5.2 Visualization Components
+
+```typescript
+// src/components/VisualizationDashboard/index.tsx
+import { Chart } from 'chart.js';
+
+export const VisualizationDashboard: React.FC<{ data: ProcessingResults }> = ({ data }) => {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      {/* Charts and visualizations */}
+    </div>
+  );
+};
+```
+
+## Phase 6: Testing and Optimization (Week 4-5)
+
+### 6.1 Component Testing
+
+```typescript
+// src/components/DocumentUpload/index.test.tsx
+import { render, fireEvent } from '@testing-library/react';
+import { DocumentUpload } from './index';
+
+describe('DocumentUpload', () => {
+  it('handles file upload correctly', () => {
+    // Test implementation
+  });
+});
+```
+
+### 6.2 Performance Optimization
+
+- Implement lazy loading for components
+- Add proper error boundaries
+- Optimize bundle size
+- Add proper caching strategies
+
+## Phase 7: Deployment and CI/CD (Week 5)
+
+### 7.1 Build Configuration
+
+```typescript
+// next.config.js
+module.exports = {
+  // Next.js configuration
+};
+```
+
+### 7.2 Deployment Setup
+
+- Configure deployment platform (Vercel/Netlify)
+- Set up environment variables
+- Configure build and deployment scripts
+
+## Migration Checklist
+
+### Backend Tasks
+- [ ] Create FastAPI endpoints
+- [ ] Implement WebSocket support
+- [ ] Add CORS configuration
+- [ ] Set up authentication
+- [ ] Create API documentation
+
+### Frontend Tasks
+- [ ] Set up Next.js project
+- [ ] Create core components
+- [ ] Implement API integration
+- [ ] Add WebSocket support
+- [ ] Create visualization components
+- [ ] Add proper error handling
+- [ ] Implement responsive design
+- [ ] Add loading states
+- [ ] Set up testing
+
+### DevOps Tasks
+- [ ] Configure build process
+- [ ] Set up CI/CD pipeline
+- [ ] Configure deployment
+- [ ] Set up monitoring
+- [ ] Configure logging
+
+## Timeline
+- Week 1: Project setup and backend API development
+- Week 2: Core components development
+- Week 3: State management and data flow
+- Week 4: UI/UX implementation
+- Week 5: Testing, optimization, and deployment
+
+## Notes
+- Ensure backward compatibility during migration
+- Implement feature flags for gradual rollout
+- Monitor performance metrics
+- Gather user feedback
+- Document all API changes
+
+## Phase 4: System Completion Tasks (Post-Migration)
+
+### Priority 1 - Core Functionality (Week 1-2)
+1. Document Processing Implementation
+   - Implement PDF content extraction using PyMuPDF
+   - Add Markdown processing with markdown-it-py
+   - Create HTML processing with BeautifulSoup4
+   - Implement document validation logic
+   - Add document metadata extraction
+   - Set up proper error handling and recovery
+
+2. ChromaDB Integration
+   - Initialize ChromaDB connection in SharedDependencies
+   - Implement vector storage service
+   - Add document embedding generation
+   - Create semantic search functionality
+   - Set up vector store persistence
+   - Add batch processing optimization
+
+3. Agent Framework Enhancement
+   - Fix register_handler method naming
+   - Implement proper dependency injection
+   - Add agent state management
+   - Create agent recovery mechanisms
+   - Implement agent monitoring
+   - Add logging and debugging tools
+
+### Priority 2 - System Stability (Week 2-3)
+1. Message Bus Optimization
+   - Implement message persistence
+   - Add load balancing for message routing
+   - Create message retry mechanisms
+   - Implement dead letter queues
+   - Add message prioritization
+   - Create message tracking system
+
+2. Error Handling & Recovery
+   - Implement global error handling
+   - Add transaction management
+   - Create cleanup mechanisms
+   - Implement retry policies
+   - Add circuit breakers
+   - Create error reporting system
+
+3. Performance Monitoring
+   - Set up metrics collection
+   - Implement performance logging
+   - Create monitoring dashboard
+   - Add resource usage tracking
+   - Implement alerting system
+   - Create performance reports
+
+### Priority 3 - Feature Enhancement (Week 3-4)
+1. Knowledge Graph Implementation
+   - Create graph visualization components
+   - Implement relationship management
+   - Add interactive graph navigation
+   - Create graph search functionality
+   - Implement graph analytics
+   - Add graph export features
+
+2. Cache Management
+   - Implement Redis caching layer
+   - Add cache invalidation logic
+   - Create cache warming system
+   - Implement cache monitoring
+   - Add cache optimization
+   - Create cache analytics
+
+3. Document Preview System
+   - Create preview generation service
+   - Implement thumbnail creation
+   - Add streaming preview delivery
+   - Create preview caching
+   - Implement preview optimization
+   - Add preview management tools
+
+### Priority 4 - System Optimization (Week 4-5)
+1. Performance Optimization
+   - Optimize document processing
+   - Implement batch processing
+   - Add parallel processing
+   - Create resource management
+   - Implement load balancing
+   - Add performance tuning
+
+2. Security Enhancement
+   - Implement input validation
+   - Add output sanitization
+   - Create access control
+   - Implement rate limiting
+   - Add security monitoring
+   - Create security logging
+
+3. System Integration
+   - Create API documentation
+   - Implement integration tests
+   - Add system monitoring
+   - Create deployment guides
+   - Implement CI/CD pipeline
+   - Add system backup/restore
+
+### Implementation Notes
+- Each task should include proper documentation
+- Write tests for new functionality
+- Maintain backward compatibility
+- Follow code style guidelines
+- Update API documentation
+- Create user guides
+
+### Dependencies
+- PyMuPDF for PDF processing
+- markdown-it-py for Markdown
+- BeautifulSoup4 for HTML
+- Redis for caching
+- NetworkX for graph processing
+- FastAPI for API endpoints
+- React for frontend components
+- ChromaDB for vector storage
+
+### Monitoring Requirements
+- CPU/Memory usage
+- Processing times
+- Error rates
+- Cache hit/miss ratios
+- API response times
+- System throughput
+
+This prioritized list ensures systematic completion of missing components while maintaining system stability and performance. Each phase builds upon the previous one, creating a robust and feature-complete system. 

@@ -45,3 +45,7 @@ data/
 # OS
 .DS_Store
 Thumbs.db
+
+# Other
+RAG_init/*
+RAG_refined/*
