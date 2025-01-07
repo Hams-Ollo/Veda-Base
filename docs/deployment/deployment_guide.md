@@ -1,446 +1,412 @@
 # Deployment Guide
 
-## Overview
-
-This guide details the deployment process for the Veda Base system. The application is containerized and designed to run on Kubernetes, with support for both cloud and on-premises deployments.
+This guide provides instructions for deploying Veda Base in a production environment.
 
 ## Prerequisites
 
-### Infrastructure Requirements
+- Docker and Docker Compose
+- Kubernetes cluster
+- Domain name and SSL certificates
+- Cloud provider account (AWS/GCP/Azure)
+- CI/CD pipeline (GitHub Actions/GitLab CI)
 
-- Kubernetes cluster (v1.24+)
-- Helm (v3.8+)
-- Container registry access
-- Load balancer
-- SSL certificates
-
-### Resource Requirements
-
-```yaml
-Minimum Cluster Specifications:
-- Control Plane: 2 nodes
-- Worker Nodes: 3 nodes
-- CPU per node: 4 cores
-- Memory per node: 16GB
-- Storage: 100GB SSD per node
-```
-
-## Architecture Overview
-
-### Component Architecture
-
-```mermaid
-graph TD
-    %% External Access
-    Internet((Internet)) --> LB[Load Balancer]
-    LB --> |HTTPS| Ingress[NGINX Ingress]
-    
-    %% Application Components
-    subgraph Kubernetes Cluster
-        Ingress --> |Route| FE[Frontend Service]
-        Ingress --> |Route| API[API Service]
-        
-        %% Frontend
-        subgraph Frontend
-            FE --> WebUI[Web UI Pods]
-            FE --> AdminUI[Admin UI Pods]
-        end
-        
-        %% Backend
-        subgraph Backend
-            API --> AppServer[Application Server]
-            AppServer --> Agents[Agent System]
-            AppServer --> DocProcessor[Document Processor]
-        end
-        
-        %% Data Layer
-        subgraph Data
-            Agents --> |Read/Write| VS[(Vector Store)]
-            Agents --> |Read/Write| Cache[(Redis)]
-            Agents --> |Read/Write| DB[(PostgreSQL)]
-        end
-        
-        %% Monitoring
-        Monitor[Monitoring Stack] --> |Collect| Frontend
-        Monitor --> |Collect| Backend
-        Monitor --> |Collect| Data
-    end
-    
-    %% External Services
-    AppServer --> |API Calls| Groq[Groq LLM]
-    Monitor --> |Export| Logfire[Logfire]
-```
-
-## Deployment Process
-
-### 1. Environment Setup
-
-#### Create Configuration Files
-
-```bash
-# Create namespace
-kubectl create namespace vedabase
-
-# Create secrets
-kubectl create secret generic vedabase-secrets \
-    --from-file=./secrets/api-keys.yaml \
-    --from-file=./secrets/certificates.yaml \
-    --namespace vedabase
-
-# Create configmaps
-kubectl create configmap vedabase-config \
-    --from-file=./config/app-config.yaml \
-    --namespace vedabase
-```
-
-#### Configure Storage
-
-```yaml
-# storage-class.yaml
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: vedabase-storage
-provisioner: kubernetes.io/aws-ebs
-parameters:
-  type: gp3
-  iopsPerGB: "3000"
-  encrypted: "true"
-```
-
-### 2. Database Setup
-
-#### Deploy PostgreSQL
-
-```bash
-# Add Helm repository
-helm repo add bitnami https://charts.bitnami.com/bitnami
-
-# Install PostgreSQL
-helm install vedabase-db bitnami/postgresql \
-    --namespace vedabase \
-    --values ./values/postgresql-values.yaml
-```
-
-#### Deploy Redis
-
-```bash
-# Install Redis
-helm install vedabase-cache bitnami/redis \
-    --namespace vedabase \
-    --values ./values/redis-values.yaml
-```
-
-### 3. Core Components
-
-#### Deploy Vector Store
-
-```bash
-# Install ChromaDB
-helm install alexandria-vectorstore ./helm/chromadb \
-    --namespace vedabase \
-    --values ./values/chromadb-values.yaml
-```
-
-#### Deploy Application Server
-
-```yaml
-# application-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: vedabase-api
-  namespace: vedabase
-spec:
-  replicas: 3
-  template:
-    spec:
-      containers:
-        - name: api-server
-          image: alexandria/api-server:latest
-          resources:
-            requests:
-              cpu: "1"
-              memory: "2Gi"
-            limits:
-              cpu: "2"
-              memory: "4Gi"
-```
-
-### 4. Frontend Deployment
-
-#### Deploy Web UI
-
-```yaml
-# web-ui-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: vedabase-web
-  namespace: vedabase
-spec:
-  replicas: 2
-  template:
-    spec:
-      containers:
-        - name: web-ui
-          image: alexandria/web-ui:latest
-          resources:
-            requests:
-              cpu: "500m"
-              memory: "1Gi"
-            limits:
-              cpu: "1"
-              memory: "2Gi"
-```
-
-### 5. Monitoring Setup
-
-#### Deploy Monitoring Stack
-
-```bash
-# Add Helm repository
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-
-# Install monitoring stack
-helm install vedabase-monitoring prometheus-community/kube-prometheus-stack \
-    --namespace vedabase \
-    --values ./values/monitoring-values.yaml
-```
-
-## Configuration
+## Environment Setup
 
 ### Environment Variables
 
-```yaml
-# Application Configuration
-APP_ENV: production
-LOG_LEVEL: info
-API_VERSION: v1
-ENABLE_METRICS: true
+1. Backend environment (`.env.production`):
+```env
+# Application
+DEBUG=false
+ENVIRONMENT=production
+LOG_LEVEL=INFO
 
-# Service Endpoints
-API_URL: https://api.vedabase.com
-WEB_URL: https://vedabase.com
-ADMIN_URL: https://admin.vedabase.com
+# Database
+DATABASE_URL=postgresql://user:password@host:5432/veda_base
+REDIS_URL=redis://host:6379/0
 
-# External Services
-GROQ_API_KEY: ${GROQ_API_KEY}
-LOGFIRE_TOKEN: ${LOGFIRE_TOKEN}
+# Security
+API_KEY=your-production-api-key
+JWT_SECRET=your-jwt-secret
+ALLOWED_ORIGINS=https://your-domain.com
 
-# Database Configuration
-POSTGRES_HOST: vedabase-db
-POSTGRES_PORT: 5432
-POSTGRES_DB: vedabase
-POSTGRES_USER: ${POSTGRES_USER}
-POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+# AI Services
+GROQ_API_KEY=your-groq-api-key
 
-# Cache Configuration
-REDIS_HOST: vedabase-cache
-REDIS_PORT: 6379
-REDIS_PASSWORD: ${REDIS_PASSWORD}
+# Monitoring
+LOGFIRE_TOKEN=your-logfire-token
 ```
 
-## Security
+2. Frontend environment (`.env.production`):
+```env
+NEXT_PUBLIC_API_URL=https://api.your-domain.com
+NEXT_PUBLIC_WS_URL=wss://api.your-domain.com
+NEXT_PUBLIC_ENVIRONMENT=production
+```
 
-### Network Policies
+## Docker Configuration
+
+### Production Dockerfile
+
+```dockerfile
+# Backend Dockerfile
+FROM python:3.8-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app/ app/
+COPY alembic/ alembic/
+COPY alembic.ini .
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# Frontend Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+RUN npm run build
+
+CMD ["npm", "start"]
+```
+
+### Docker Compose
 
 ```yaml
-# network-policy.yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.production
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - frontend/.env.production
+
+  db:
+    image: postgres:14
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=veda_base
+
+  redis:
+    image: redis:7
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+```
+
+## Kubernetes Deployment
+
+### Namespace and Secrets
+
+```yaml
+# namespace.yaml
+apiVersion: v1
+kind: Namespace
 metadata:
-  name: vedabase-network-policy
-  namespace: vedabase
-spec:
-  podSelector: {}
-  policyTypes:
-    - Ingress
-    - Egress
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              name: vedabase
-  egress:
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              name: vedabase
+  name: veda-base
+
+# secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: veda-base-secrets
+  namespace: veda-base
+type: Opaque
+data:
+  DATABASE_URL: base64_encoded_url
+  REDIS_URL: base64_encoded_url
+  API_KEY: base64_encoded_key
+  JWT_SECRET: base64_encoded_secret
 ```
 
-### SSL Configuration
+### Deployments
 
 ```yaml
-# ingress-tls.yaml
+# api-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: veda-base-api
+  namespace: veda-base
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: veda-base-api
+  template:
+    metadata:
+      labels:
+        app: veda-base-api
+    spec:
+      containers:
+        - name: api
+          image: your-registry/veda-base-api:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: veda-base-secrets
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+
+# frontend-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: veda-base-frontend
+  namespace: veda-base
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: veda-base-frontend
+  template:
+    metadata:
+      labels:
+        app: veda-base-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: your-registry/veda-base-frontend:latest
+          ports:
+            - containerPort: 3000
+```
+
+### Services and Ingress
+
+```yaml
+# services.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: veda-base-api
+  namespace: veda-base
+spec:
+  selector:
+    app: veda-base-api
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: veda-base-frontend
+  namespace: veda-base
+spec:
+  selector:
+    app: veda-base-frontend
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+# ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: vedabase-ingress
-  namespace: vedabase
+  name: veda-base-ingress
+  namespace: veda-base
   annotations:
+    kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
-  tls:
-    - hosts:
-        - vedabase.com
-        - api.vedabase.com
-      secretName: vedabase-tls
+  rules:
+    - host: api.your-domain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: veda-base-api
+                port:
+                  number: 80
+    - host: your-domain.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: veda-base-frontend
+                port:
+                  number: 80
 ```
 
-## Monitoring
+## Database Migration
 
-### Metrics Collection
+```bash
+# Run migrations
+alembic upgrade head
+
+# Create backup
+pg_dump -U user -d veda_base > backup.sql
+
+# Restore from backup
+psql -U user -d veda_base < backup.sql
+```
+
+## Monitoring Setup
+
+### Prometheus Configuration
 
 ```yaml
-# prometheus-rules.yaml
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
-metadata:
-  name: vedabase-alerts
-  namespace: vedabase
-spec:
-  groups:
-    - name: vedabase
-      rules:
-        - alert: HighErrorRate
-          expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
-          for: 5m
-          labels:
-            severity: critical
+# prometheus.yaml
+scrape_configs:
+  - job_name: 'veda-base-api'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['veda-base-api:8000']
 ```
 
-### Logging Configuration
+### Grafana Dashboard
+
+1. Import dashboard template
+2. Configure data source
+3. Set up alerts
+
+## CI/CD Pipeline
+
+### GitHub Actions
 
 ```yaml
-# logfire-config.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: logfire-config
-  namespace: vedabase
-data:
-  logfire.yaml: |
-    exporters:
-      logfire:
-        endpoint: logs.logfire.sh
-        token: ${LOGFIRE_TOKEN}
+name: Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build images
+        run: |
+          docker build -t api ./backend
+          docker build -t frontend ./frontend
+
+      - name: Push to registry
+        run: |
+          docker tag api ${{ secrets.REGISTRY }}/veda-base-api
+          docker tag frontend ${{ secrets.REGISTRY }}/veda-base-frontend
+          docker push ${{ secrets.REGISTRY }}/veda-base-api
+          docker push ${{ secrets.REGISTRY }}/veda-base-frontend
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/
 ```
 
-## Scaling
+## SSL Configuration
 
-### Horizontal Pod Autoscaling
+### Certbot Setup
 
-```yaml
-# hpa.yaml
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: vedabase-api-hpa
-  namespace: vedabase
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: vedabase-api
-  minReplicas: 3
-  maxReplicas: 10
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 70
+```bash
+# Install certbot
+apt-get install certbot
+
+# Generate certificate
+certbot certonly --webroot -w /var/www/html -d your-domain.com
+
+# Auto-renewal
+certbot renew --dry-run
 ```
 
-## Backup & Recovery
+## Backup Strategy
 
-### Backup Configuration
+1. Database backups:
+   - Daily automated backups
+   - Weekly full backups
+   - Monthly archives
 
-```yaml
-# backup-cronjob.yaml
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: vedabase-backup
-  namespace: vedabase
-spec:
-  schedule: "0 2 * * *"
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-            - name: backup
-              image: alexandria/backup:latest
-              env:
-                - name: BACKUP_PATH
-                  value: /backups
-```
+2. File backups:
+   - Document storage backup
+   - Configuration backup
+   - Log files backup
+
+## Security Checklist
+
+- [ ] SSL certificates installed
+- [ ] Firewall rules configured
+- [ ] Security headers set
+- [ ] Rate limiting enabled
+- [ ] API keys rotated
+- [ ] Monitoring alerts set
+- [ ] Backup system tested
+- [ ] Access logs enabled
+- [ ] Error reporting configured
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. Pod Startup Failures
+1. Database connection issues:
+   - Check connection string
+   - Verify network access
+   - Check credentials
 
-   ```bash
-   kubectl describe pod <pod-name> -n vedabase
-   kubectl logs <pod-name> -n vedabase
-   ```
+2. WebSocket connection fails:
+   - Verify WebSocket URL
+   - Check SSL configuration
+   - Confirm proxy settings
 
-2. Database Connection Issues
-
-   ```bash
-   kubectl exec -it vedabase-db-0 -n vedabase -- psql -U postgres
-   ```
-
-3. Cache Connection Issues
-
-   ```bash
-   kubectl exec -it vedabase-cache-0 -n vedabase -- redis-cli
-   ```
-
-### Health Checks
-
-```bash
-# Check pod status
-kubectl get pods -n vedabase
-
-# Check service status
-kubectl get services -n vedabase
-
-# Check ingress status
-kubectl get ingress -n vedabase
-
-# Check persistent volumes
-kubectl get pv,pvc -n vedabase
-```
+3. Performance issues:
+   - Monitor resource usage
+   - Check database indexes
+   - Review caching strategy
 
 ## Maintenance
 
-### Rolling Updates
+### Regular Tasks
 
-```bash
-# Update deployment
-kubectl set image deployment/vedabase-api \
-    api-server=alexandria/api-server:new-version \
-    -n vedabase
+1. Daily:
+   - Monitor error logs
+   - Check system health
+   - Verify backups
 
-# Monitor rollout
-kubectl rollout status deployment/vedabase-api -n vedabase
+2. Weekly:
+   - Review performance metrics
+   - Update dependencies
+   - Rotate logs
 
-# Rollback if needed
-kubectl rollout undo deployment/vedabase-api -n vedabase
-```
-
-### Cleanup
-
-```bash
-# Delete namespace and all resources
-kubectl delete namespace vedabase
-
-# Delete persistent volumes
-kubectl delete pv -l app=vedabase
-```
+3. Monthly:
+   - Security updates
+   - SSL certificate check
+   - Resource planning
