@@ -5,6 +5,7 @@
 ## ✨ Features
 
 ### Document Processing
+
 - 📄 Multi-format document support (PDF, DOCX, MD, TEX, HTML)
 - 📊 Table detection and extraction from PDFs
 - 🖼️ Image extraction and processing
@@ -13,6 +14,7 @@
 - 📦 Batch processing with progress tracking
 
 ### Knowledge Management
+
 - 🤖 Multi-Agent System Architecture
 - 🕸️ Knowledge Graph Generation
 - 🏷️ Taxonomy Management
@@ -20,6 +22,7 @@
 - 📨 Asynchronous Message Bus
 
 ### User Interface
+
 - ⚛️ Modern React-based UI
 - 🔄 Real-time updates via WebSocket
 - 📱 Responsive design
@@ -30,6 +33,7 @@
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - ⚛️ Next.js 14
 - 💅 React 18 with TypeScript
 - 🎨 TailwindCSS
@@ -38,6 +42,7 @@
 - 📊 Real-time data visualization
 
 ### Backend
+
 - 🐍 Python 3.8+
 - ⚡ FastAPI
 - 🔄 WebSocket support
@@ -48,7 +53,8 @@
 
 ## 🧩 Core Components
 
-### Document Processing
+### Document Processing Engine
+
 - 📑 Multi-format document handler
 - 📊 Table detection system
 - 🖼️ Image extraction
@@ -56,6 +62,7 @@
 - 🔄 Batch processing manager
 
 ### Agent System
+
 - 👨‍💼 Librarian Prime (System Orchestrator)
 - 🧠 Domain Specialists
 - 📝 Document Processors
@@ -63,6 +70,7 @@
 - 🗂️ Taxonomy Master
 
 ### Real-time Processing
+
 - 🔄 WebSocket Manager
 - 📊 Progress Tracking
 - 🚦 Status Updates
@@ -80,6 +88,7 @@
 ## 🚀 Quick Start
 
 ### Backend Setup
+
 ```bash
 # Create virtual environment
 python -m venv venv
@@ -95,6 +104,7 @@ uvicorn app.main:app --reload
 ```
 
 ### Frontend Setup
+
 ```bash
 # Navigate to frontend directory
 cd frontend
@@ -107,12 +117,14 @@ npm run dev
 ```
 
 The application will be available at:
-- 🌐 Frontend: http://localhost:3000
-- 🔌 Backend API: http://localhost:8000
-- 📚 API Documentation: http://localhost:8000/docs
+
+- 🌐 Frontend: <http://localhost:3000>
+- 🔌 Backend API: <http://localhost:8000>
+- 📚 API Documentation: <http://localhost:8000/docs>
 
 ## 📁 Project Structure
-```
+
+```curl
 library-of-alexandria/
 ├── app/                    # Backend application
 │   ├── api/               # FastAPI routes and WebSocket
@@ -135,21 +147,24 @@ library-of-alexandria/
 
 ## 🎯 Key Features in Detail
 
-### Document Processing
+### Advanced Document Processing Pipeline
+
 - 📄 Support for multiple document formats
 - 📊 Automatic table detection and extraction
 - 🔍 Content analysis and metadata extraction
 - 📦 Concurrent batch processing
 - 📈 Progress tracking and statistics
 
-### Real-time Updates
+### Real-time System Updates
+
 - 🔄 WebSocket-based status updates
 - 📊 Live progress visualization
 - 📈 Processing statistics
 - ❌ Error reporting and handling
 - 🔄 Cancellation support
 
-### User Interface
+### Modern User Interface Design
+
 - 📱 Responsive design
 - 📤 Drag-and-drop file upload
 - 📊 Progress tracking
