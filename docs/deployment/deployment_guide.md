@@ -15,6 +15,7 @@ This guide provides instructions for deploying Veda Base in a production environ
 ### Environment Variables
 
 1. Backend environment (`.env.production`):
+
 ```env
 # Application
 DEBUG=false
@@ -38,6 +39,7 @@ LOGFIRE_TOKEN=your-logfire-token
 ```
 
 2. Frontend environment (`.env.production`):
+
 ```env
 NEXT_PUBLIC_API_URL=https://api.your-domain.com
 NEXT_PUBLIC_WS_URL=wss://api.your-domain.com
