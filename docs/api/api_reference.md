@@ -1,390 +1,269 @@
 # API Reference
 
-## Overview
-
-Veda Base provides a comprehensive RESTful API built with FastAPI. The API enables document management, knowledge extraction, search capabilities, and system administration. This reference details all available endpoints, their parameters, and expected responses.
+This document provides detailed information about the Veda Base API endpoints, authentication, and usage.
 
 ## Base URL
 
 ```curl
-https://api.vedabase.com/v1
+http://localhost:8000/api
 ```
 
 ## Authentication
 
-All API requests require authentication using JWT tokens or API keys. Include the token in the Authorization header:
+All API requests require authentication using an API key. Include the API key in the request header:
 
-```http
-Authorization: Bearer <token>
-```
-
-## Rate Limiting
-
-- 100 requests per minute per IP
-- 1000 requests per hour per API key
-- Bulk operations have separate limits
-
-## Common Headers
-
-```http
-Content-Type: application/json
-Accept: application/json
-Authorization: Bearer <token>
-X-Request-ID: <uuid>
+```curl
+Authorization: Bearer your-api-key
 ```
 
 ## Endpoints
 
 ### Document Management
 
-#### Upload Document
+#### Upload Documents
 
 ```http
 POST /documents/upload
 Content-Type: multipart/form-data
+```
 
-Parameters:
-- file: File (required)
-- metadata: JSON object (optional)
-- process_options: JSON object (optional)
+Upload one or more documents for processing.
 
-Response: 201 Created
+**Request Body:**
+
+- `files`: Array of files (PDF, Markdown, HTML)
+
+**Response:**
+
+```json
 {
-    "document_id": "string",
-    "status": "processing",
-    "metadata": {...},
-    "process_id": "string"
+  "batch_id": "string",
+  "message": "string"
 }
 ```
 
-#### Get Document Status
+#### Get Processing Status
 
 ```http
-GET /documents/{document_id}/status
+GET /documents/status/{batch_id}
+```
 
-Response: 200 OK
+Get the processing status of a document batch.
+
+**Response:**
+
+```json
 {
-    "document_id": "string",
-    "status": "string",
-    "progress": number,
-    "metadata": {...},
-    "error": string | null
+  "batch_id": "string",
+  "total_files": 0,
+  "processed_files": 0,
+  "success_count": 0,
+  "error_count": 0,
+  "current_file": "string",
+  "status": "pending",
+  "errors": [
+    {
+      "file": "string",
+      "error": "string"
+    }
+  ]
 }
 ```
 
-#### List Documents
+#### Cancel Processing
 
 ```http
-GET /documents
-Parameters:
-- page: integer (default: 1)
-- limit: integer (default: 20)
-- status: string
-- type: string
-- sort: string
+DELETE /documents/cancel/{batch_id}
+```
 
-Response: 200 OK
+Cancel the processing of a document batch.
+
+### Processing Metrics
+
+#### Get Metrics
+
+```http
+GET /processing/metrics
+```
+
+Get current processing metrics.
+
+**Response:**
+
+```json
 {
-    "documents": [...],
-    "total": integer,
-    "page": integer,
-    "pages": integer
+  "total_documents": 0,
+  "processing_rate": 0,
+  "success_rate": 0,
+  "error_rate": 0
 }
 ```
 
-### Search & Retrieval
-
-#### Semantic Search
+#### Get Active Processing
 
 ```http
-POST /search/semantic
-{
-    "query": "string",
-    "filters": {...},
-    "limit": integer,
-    "offset": integer
-}
-
-Response: 200 OK
-{
-    "results": [...],
-    "total": integer,
-    "metadata": {...}
-}
+GET /processing/active
 ```
 
-#### Knowledge Graph Query
+Get information about currently processing documents.
+
+#### Get Processing History
 
 ```http
-POST /graph/query
-{
-    "query": "string",
-    "depth": integer,
-    "filters": {...}
-}
-
-Response: 200 OK
-{
-    "nodes": [...],
-    "edges": [...],
-    "metadata": {...}
-}
+GET /processing/history
 ```
 
-### Agent System
+Get processing history with pagination.
 
-#### Initiate Task
+**Query Parameters:**
+
+- `limit`: Number of records (default: 50)
+- `offset`: Offset for pagination (default: 0)
+
+#### Get Performance Stats
 
 ```http
-POST /agents/tasks
-{
-    "type": "string",
-    "parameters": {...},
-    "priority": integer
-}
-
-Response: 202 Accepted
-{
-    "task_id": "string",
-    "status": "queued",
-    "agent": "string"
-}
+GET /processing/performance
 ```
 
-#### Get Task Status
+Get system performance statistics.
 
-```http
-GET /agents/tasks/{task_id}
+**Response:**
 
-Response: 200 OK
+```json
 {
-    "task_id": "string",
-    "status": "string",
-    "progress": number,
-    "result": {...} | null,
-    "error": string | null
-}
-```
-
-### Analytics & Monitoring
-
-#### System Status
-
-```http
-GET /system/status
-
-Response: 200 OK
-{
-    "status": "string",
-    "components": {...},
-    "metrics": {...}
-}
-```
-
-#### Usage Statistics
-
-```http
-GET /analytics/usage
-Parameters:
-- start_date: string
-- end_date: string
-- metrics: string[]
-
-Response: 200 OK
-{
-    "metrics": {...},
-    "trends": [...],
-    "summary": {...}
+  "processing_speed": {
+    "average_time_per_file": 0,
+    "files_per_second": 0
+  },
+  "memory_usage": {
+    "current": 0,
+    "peak": 0
+  },
+  "cache_stats": {
+    "hit_rate": 0,
+    "size": 0
+  },
+  "error_rates": {
+    "total_errors": 0,
+    "error_rate": 0
+  },
+  "timestamp": "string"
 }
 ```
 
 ## WebSocket API
 
-### Real-time Updates
+### Connection
 
-```curl
-WSS /ws/updates
+Connect to the WebSocket server for real-time updates:
 
-Message Format:
-{
-    "type": "string",
-    "data": {...},
-    "timestamp": string
-}
+```javascript
+const socket = io('ws://localhost:8000/api/ws/processing/{batch_id}');
 ```
 
-### Document Processing Stream
+### Events
 
-```curl
-WSS /ws/documents/{document_id}/stream
+#### processing_progress
 
-Message Format:
-{
-    "event": "string",
-    "progress": number,
-    "data": {...},
-    "timestamp": string
-}
+Emitted when document processing progress is updated.
+
+```javascript
+socket.on('processing_progress', (data) => {
+  console.log(data);
+});
+```
+
+#### processing_complete
+
+Emitted when document processing is completed.
+
+```javascript
+socket.on('processing_complete', (data) => {
+  console.log(data);
+});
 ```
 
 ## Error Handling
 
-### Error Response Format
+The API uses standard HTTP status codes and returns error messages in the following format:
 
 ```json
 {
-    "error": {
-        "code": "string",
-        "message": "string",
-        "details": {...},
-        "request_id": "string"
-    }
+  "error": "string",
+  "message": "string",
+  "details": {}
 }
 ```
 
-### Common Error Codes
+Common status codes:
 
+- 200: Success
 - 400: Bad Request
 - 401: Unauthorized
-- 403: Forbidden
 - 404: Not Found
-- 429: Too Many Requests
 - 500: Internal Server Error
+
+## Rate Limiting
+
+The API implements rate limiting to ensure fair usage:
+
+- 100 requests per minute per IP
+- 1000 requests per hour per API key
+
+Rate limit headers are included in responses:
+
+```curl
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+X-RateLimit-Reset: 1640995200
+```
 
 ## Pagination
 
-### Request Parameters
+Endpoints that return lists support pagination using `limit` and `offset` parameters:
 
-- page: Page number (1-based)
-- limit: Items per page
-- sort: Sort field and direction
+```http
+GET /processing/history?limit=10&offset=0
+```
 
-### Response Format
+Response includes pagination metadata:
 
 ```json
 {
-    "items": [...],
-    "metadata": {
-        "total": integer,
-        "page": integer,
-        "pages": integer,
-        "has_next": boolean,
-        "has_prev": boolean
-    }
+  "data": [],
+  "total": 0,
+  "limit": 10,
+  "offset": 0
 }
 ```
-
-## Data Models
-
-### Document
-
-```json
-{
-    "id": "string",
-    "title": "string",
-    "content_type": "string",
-    "size": integer,
-    "created_at": "string",
-    "updated_at": "string",
-    "metadata": {...},
-    "status": "string",
-    "tags": [...]
-}
-```
-
-### SearchResult
-
-```json
-{
-    "id": "string",
-    "score": number,
-    "highlight": {...},
-    "document": {...},
-    "metadata": {...}
-}
-```
-
-### Task
-
-```json
-{
-    "id": "string",
-    "type": "string",
-    "status": "string",
-    "created_at": "string",
-    "updated_at": "string",
-    "progress": number,
-    "result": {...},
-    "error": string | null
-}
-```
-
-## Best Practices
-
-### API Rate Limiting
-
-- Implement exponential backoff
-- Cache responses when possible
-- Use bulk operations for multiple items
-
-### API Error Handling
-
-- Always check error responses
-- Implement retry logic with backoff
-- Log request IDs for debugging
-
-### API Performance
-
-- Use compression for large requests
-- Implement request batching
-- Cache frequently accessed data
-
-### API Security
-
-- Rotate API keys regularly
-- Use HTTPS for all requests
-- Validate all input data
 
 ## SDK Examples
 
 ### Python
 
 ```python
-from vedabase_client import VedaBaseClient
+from veda_base_client import VedaBaseClient
 
 client = VedaBaseClient(api_key="your-api-key")
 
-# Upload document
-response = client.documents.upload(
-    file_path="document.pdf",
-    metadata={"category": "research"}
-)
+# Upload documents
+response = client.documents.upload(files=["document.pdf"])
 
-# Search documents
-results = client.search.semantic(
-    query="quantum computing",
-    limit=10
-)
+# Check status
+status = client.documents.get_status(batch_id=response.batch_id)
 ```
 
 ### JavaScript
 
 ```javascript
-import { VedaBaseClient } from '@vedabase/client';
+import { VedaBaseClient } from 'veda-base-client';
 
-const client = new VedaBaseClient({
-    apiKey: 'your-api-key'
-});
+const client = new VedaBaseClient({ apiKey: 'your-api-key' });
 
-// Upload document
-const response = await client.documents.upload({
-    file: documentFile,
-    metadata: { category: 'research' }
-});
+# Upload documents
+const response = await client.documents.upload(files);
 
-// Search documents
-const results = await client.search.semantic({
-    query: 'quantum computing',
-    limit: 10
-});
+# Check status
+const status = await client.documents.getStatus(response.batchId);
 ```

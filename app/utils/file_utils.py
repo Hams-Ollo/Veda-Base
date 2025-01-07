@@ -17,6 +17,29 @@ logger = logging.getLogger(__name__)
 temp_files: Set[Path] = set()
 temp_cleanup_lock = asyncio.Lock()
 
+def safe_file_ops(func):
+    """Decorator for safe file operations with proper cleanup."""
+    async def wrapper(*args, **kwargs):
+        temp_path = None
+        try:
+            return await func(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"File operation error in {func.__name__}: {str(e)}")
+            raise
+        finally:
+            if temp_path and isinstance(temp_path, Path):
+                try:
+                    temp_path.unlink(missing_ok=True)
+                except Exception as e:
+                    logger.error(f"Error cleaning up temp file: {str(e)}")
+    return wrapper
+
+async def chunk_reader(file_path: Path, chunk_size: int = 8192):
+    """Read file in chunks to handle large files efficiently."""
+    async with aiofiles.open(file_path, 'rb') as f:
+        while chunk := await f.read(chunk_size):
+            yield chunk
+
 def get_file_type(file_path: Path) -> str:
     """Get the type of a file based on its extension."""
     mime_type, _ = mimetypes.guess_type(str(file_path))

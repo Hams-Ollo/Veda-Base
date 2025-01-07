@@ -1,458 +1,353 @@
 # Development Guide
 
-## Overview
+This guide provides detailed information for developers working on the Veda Base project.
 
-This guide provides instructions for setting up the development environment and working with the Veda Base codebase. The project uses a modern development stack with Python (FastAPI) for the backend and Next.js for the frontend.
-
-## Getting Started
+## Development Environment Setup
 
 ### Prerequisites
 
-- Python 3.8+
-- Node.js 18+
-- Docker & Docker Compose
-- Git
-- Poetry (Python dependency management)
-- pnpm (Node.js package manager)
-- Visual Studio Code (recommended)
+1. Install required software:
+   - Python 3.8+
+   - Node.js 18+
+   - Git
+   - Visual Studio Code (recommended)
 
-### Development Tools
+2. Install Python tools:
 
-```bash
-# Install development tools
-pip install poetry pre-commit black isort mypy pytest
-npm install -g pnpm typescript @typescript-eslint/parser
-```
+   ```bash
+   pip install black isort mypy pytest
+   ```
 
-### Repository Setup
+3. Install Node.js tools:
 
-```bash
-# Clone repository
-git clone https://github.com/yourusername/veda-base.git
-cd veda-base
+   ```bash
+   npm install -g typescript eslint prettier
+   ```
 
-# Install pre-commit hooks
-pre-commit install
+### Project Setup
 
-# Install Python dependencies
-poetry install
+1. Clone the repository:
 
-# Install Node.js dependencies
-cd frontend
-pnpm install
-```
+   ```bash
+   git clone https://github.com/yourusername/veda-base.git
+   cd veda-base
+   ```
+
+2. Set up backend:
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+3. Set up frontend:
+
+   ```bash
+   cd frontend
+   npm install
+   ```
 
 ## Project Structure
-
-### Directory Layout
 
 ```curl
 veda-base/
 ├── app/                    # Backend application
 │   ├── api/               # API endpoints
-│   ├── core/              # Core business logic
-│   ├── models/            # Data models
-│   ├── services/          # Business services
-│   ├── utils/             # Utility functions
-│   └── main.py           # Application entry point
-├── frontend/              # Frontend application
-│   ├── app/              # Next.js application
-│   ├── components/       # React components
-│   ├── lib/              # Utility functions
-│   └── public/           # Static assets
-├── tests/                 # Test suite
-│   ├── unit/             # Unit tests
-│   ├── integration/      # Integration tests
-│   └── e2e/              # End-to-end tests
-├── docs/                  # Documentation
-├── scripts/               # Development scripts
-└── docker/               # Docker configuration
+│   │   ├── routes/       # Route handlers
+│   │   └── websocket/    # WebSocket handlers
+│   ├── core/             # Core business logic
+│   │   ├── agents/       # AI agents
+│   │   ├── document/     # Document processing
+│   │   └── knowledge/    # Knowledge management
+│   └── utils/            # Utility functions
+├── frontend/             # Frontend application
+│   ├── src/
+│   │   ├── components/   # React components
+│   │   ├── hooks/       # Custom hooks
+│   │   ├── services/    # API services
+│   │   └── types/       # TypeScript types
+└── docs/                 # Documentation
 ```
 
 ## Development Workflow
 
-### Backend Development
+### Git Workflow
 
-#### Running the Backend
+1. Create a feature branch:
 
-```bash
-# Activate virtual environment
-poetry shell
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
 
-# Run development server
-uvicorn app.main:app --reload
+2. Make changes and commit:
 
-# Run with debugger
-python -m debugpy --listen 5678 -m uvicorn app.main:app --reload
-```
+   ```bash
+   git add .
+   git commit -m "feat: add your feature"
+   ```
 
-#### API Development
+3. Push changes and create PR:
 
-```python
-# app/api/documents.py
-from fastapi import APIRouter, Depends
-from app.models import Document
-from app.services import DocumentService
+   ```bash
+   git push origin feature/your-feature-name
+   ```
 
-router = APIRouter()
+### Code Style
 
-@router.post("/documents")
-async def create_document(
-    document: Document,
-    service: DocumentService = Depends()
-):
-    return await service.create(document)
-```
+#### Python
 
-### Frontend Development
+- Follow PEP 8 guidelines
+- Use type hints
+- Format with Black
+- Sort imports with isort
+- Use docstrings for functions and classes
 
-#### Running the Frontend
+#### TypeScript/JavaScript
 
-```bash
-# Start development server
-cd frontend
-pnpm dev
+- Follow ESLint configuration
+- Use Prettier for formatting
+- Use TypeScript types
+- Write JSDoc comments for functions
 
-# Build for production
-pnpm build
-```
+### Testing
 
-#### Component Development
-
-```typescript
-// frontend/components/DocumentViewer.tsx
-import React from 'react';
-import { Document } from '@/types';
-
-interface Props {
-  document: Document;
-}
-
-export const DocumentViewer: React.FC<Props> = ({ document }) => {
-  return (
-    <div className="document-viewer">
-      <h1>{document.title}</h1>
-      <div>{document.content}</div>
-    </div>
-  );
-};
-```
-
-### Database Management
-
-#### Running Migrations
-
-```bash
-# Create migration
-alembic revision --autogenerate -m "description"
-
-# Run migrations
-alembic upgrade head
-
-# Rollback migration
-alembic downgrade -1
-```
-
-#### Database Schema
-
-```python
-# app/models/document.py
-from sqlalchemy import Column, String, DateTime
-from app.db.base import Base
-
-class Document(Base):
-    __tablename__ = "documents"
-    
-    id = Column(String, primary_key=True)
-    title = Column(String, nullable=False)
-    content = Column(String)
-    created_at = Column(DateTime, server_default=func.now())
-```
-
-## Testing
-
-### Running Tests
+#### Backend Tests
 
 ```bash
 # Run all tests
 pytest
 
 # Run specific test file
-pytest tests/unit/test_documents.py
+pytest tests/test_file.py
 
 # Run with coverage
 pytest --cov=app tests/
 ```
 
-### Writing Tests
+#### Frontend Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run specific test file
+npm test -- src/components/YourComponent.test.tsx
+
+# Run with coverage
+npm test -- --coverage
+```
+
+## Development Tools
+
+### VS Code Extensions
+
+- Python
+- ESLint
+- Prettier
+- GitLens
+- Docker
+
+### Debugging
+
+#### Backend Debugging
+
+1. Set up launch configuration in VS Code
+2. Add breakpoints
+3. Start debugging session
+
+#### Frontend Debugging
+
+1. Use Chrome DevTools
+2. Use React Developer Tools
+3. Use console.log strategically
+
+## API Development
+
+### Adding New Endpoints
+
+1. Create route in `app/api/routes/`:
 
 ```python
-# tests/unit/test_documents.py
-import pytest
-from app.services import DocumentService
+from fastapi import APIRouter, Depends
+from app.core.dependencies import get_current_user
 
-@pytest.mark.asyncio
-async def test_create_document():
-    service = DocumentService()
-    document = Document(title="Test", content="Content")
-    result = await service.create(document)
-    assert result.title == "Test"
+router = APIRouter()
+
+@router.get("/endpoint")
+async def endpoint(current_user = Depends(get_current_user)):
+    return {"message": "Success"}
 ```
 
-## Code Quality
+2. Register route in `app/api/__init__.py`
 
-### Code Formatting
+### WebSocket Development
 
-```bash
-# Format Python code
-black app/ tests/
+1. Create handler in `app/api/websocket/`:
 
-# Sort imports
-isort app/ tests/
+```python
+from fastapi import WebSocket
+from app.core.websocket import WebSocketManager
 
-# Type checking
-mypy app/
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_json()
+            await websocket.send_json({"status": "received"})
+    except:
+        await websocket.close()
 ```
 
-### Linting Configuration
+## Frontend Development
 
-```yaml
-# .pre-commit-config.yaml
-repos:
-  - repo: https://github.com/psf/black
-    rev: 22.3.0
-    hooks:
-      - id: black
-        language_version: python3.8
-  - repo: https://github.com/pycqa/isort
-    rev: 5.10.1
-    hooks:
-      - id: isort
-```
+### Component Development
 
-## Docker Development
+1. Create new component:
 
-### Local Development
+```tsx
+import React from 'react';
+import clsx from 'clsx';
 
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  api:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.dev
-    volumes:
-      - .:/app
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://user:pass@db:5432/vedabase
-  
-  db:
-    image: postgres:14
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=pass
-      - POSTGRES_DB=vedabase
-```
+interface Props {
+  className?: string;
+}
 
-### Building Images
-
-```bash
-# Build development image
-docker build -f docker/Dockerfile.dev -t veda-dev .
-
-# Build production image
-docker build -f docker/Dockerfile -t veda .
-```
-
-## Debugging
-
-### VS Code Configuration
-
-```json
-// .vscode/launch.json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Python: FastAPI",
-      "type": "python",
-      "request": "launch",
-      "module": "uvicorn",
-      "args": ["app.main:app", "--reload"],
-      "jinja": true
-    },
-    {
-      "name": "Next.js: Frontend",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/frontend/node_modules/next/dist/bin/next"
-    }
-  ]
+export function Component({ className }: Props) {
+  return (
+    <div className={clsx('base-class', className)}>
+      Content
+    </div>
+  );
 }
 ```
 
-### Logging Configuration
+2. Add tests:
 
-```python
-# app/utils/logging.py
-import logging
+```tsx
+import { render, screen } from '@testing-library/react';
+import { Component } from './Component';
 
-def setup_logging():
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    
-    # Add custom handlers
-    file_handler = logging.FileHandler('app.log')
-    file_handler.setLevel(logging.DEBUG)
-    
-    # Configure loggers
-    logger = logging.getLogger('app')
-    logger.addHandler(file_handler)
+describe('Component', () => {
+  it('renders correctly', () => {
+    render(<Component />);
+    expect(screen.getByText('Content')).toBeInTheDocument();
+  });
+});
 ```
 
-## Environment Setup
+### State Management
 
-### Environment Variables
+1. Use React Query for API state:
 
-```bash
-# .env
-DATABASE_URL=postgresql://user:pass@localhost:5432/vedabase
-REDIS_URL=redis://localhost:6379/0
-GROQ_API_KEY=your-api-key
-JWT_SECRET=your-secret-key
+```tsx
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/services/api';
+
+export function useData() {
+  return useQuery({
+    queryKey: ['data'],
+    queryFn: () => api.getData()
+  });
+}
 ```
 
-### Configuration Management
+2. Use local state when appropriate:
 
-```python
-# app/core/config.py
-from pydantic_settings import BaseSettings
-
-class Settings(BaseSettings):
-    APP_NAME: str = "Veda Base"
-    API_V1_STR: str = "/api/v1"
-    DATABASE_URL: str
-    REDIS_URL: str
-    GROQ_API_KEY: str
-    JWT_SECRET: str
-    
-    class Config:
-        env_file = ".env"
-
-settings = Settings()
+```tsx
+const [state, setState] = useState<State>({});
 ```
 
-## CI/CD Pipeline
+## Performance Optimization
 
-### GitHub Actions
-
-```yaml
-# .github/workflows/ci.yml
-name: CI
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-      - name: Install dependencies
-        run: |
-          python -m pip install poetry
-          poetry install
-      - name: Run tests
-        run: poetry run pytest
-```
-
-## Documentation
-
-### API Documentation
-
-```python
-# app/api/documents.py
-@router.post("/documents", response_model=Document)
-async def create_document(
-    document: Document,
-    service: DocumentService = Depends()
-) -> Document:
-    """
-    Create a new document.
-    
-    Args:
-        document: Document data
-        service: Document service instance
-    
-    Returns:
-        Created document
-    
-    Raises:
-        HTTPException: If document creation fails
-    """
-    return await service.create(document)
-```
-
-### Component Documentation
-
-```typescript
-// frontend/components/DocumentViewer.tsx
-/**
- * DocumentViewer component displays a document with its content.
- * 
- * @component
- * @example
- * ```tsx
- * <DocumentViewer document={{ title: 'Test', content: 'Content' }} />
- * ```
- */
-export const DocumentViewer: React.FC<Props> = ({ document }) => {
-  // Component implementation
-};
-```
-
-## Best Practices
-
-### Code Style
-
-- Follow PEP 8 for Python code
-- Use TypeScript for frontend development
-- Write descriptive variable and function names
-- Add type hints and documentation
-- Keep functions small and focused
-
-### Git Workflow
-
-- Use feature branches
-- Write descriptive commit messages
-- Squash commits before merging
-- Review code before merging
-- Keep PRs small and focused
-
-### Security
-
-- Never commit secrets
-- Validate all inputs
-- Use parameterized queries
-- Implement rate limiting
-- Keep dependencies updated
-
-### Performance
+### Backend
 
 - Use async/await for I/O operations
 - Implement caching where appropriate
 - Optimize database queries
-- Lazy load components
-- Monitor performance metrics
+- Use connection pooling
+
+### Frontend
+
+- Implement code splitting
+- Use React.memo for expensive components
+- Optimize images and assets
+- Use proper loading states
+
+## Error Handling
+
+### Backend
+
+```python
+from fastapi import HTTPException
+from app.core.exceptions import AppException
+
+try:
+    result = await process_data()
+except AppException as e:
+    raise HTTPException(status_code=400, detail=str(e))
+except Exception as e:
+    logger.error(f"Unexpected error: {e}")
+    raise HTTPException(status_code=500)
+```
+
+### Frontend
+
+```typescript
+try {
+  await api.processData();
+} catch (error) {
+  if (error instanceof ApiError) {
+    toast.error(error.message);
+  } else {
+    toast.error('An unexpected error occurred');
+  }
+}
+```
+
+## Documentation
+
+### Code Documentation
+
+- Use descriptive variable names
+- Write clear comments
+- Document complex logic
+- Keep README files updated
+
+### API Documentation
+
+- Document all endpoints
+- Include request/response examples
+- Document error responses
+- Keep OpenAPI spec updated
+
+## Deployment
+
+### Development
+
+```bash
+# Backend
+uvicorn app.main:app --reload
+
+# Frontend
+npm run dev
+```
+
+### Production Build
+
+```bash
+# Backend
+uvicorn app.main:app
+
+# Frontend
+npm run build
+npm start
+```
+
+## Contributing
+
+1. Follow the git workflow
+2. Write tests for new features
+3. Update documentation
+4. Follow code style guidelines
+5. Request code reviews

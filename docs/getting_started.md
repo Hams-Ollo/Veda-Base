@@ -1,316 +1,168 @@
-# Getting Started
+# Getting Started with Veda Base
 
-## Introduction
+This guide will help you set up and run Veda Base on your local machine for development and testing purposes.
 
-Welcome to Veda Base! This guide will help you get started with setting up and using the system. Veda Base is a modern document management and knowledge extraction system that uses AI to help you organize, analyze, and retrieve information from your documents.
+## Prerequisites
 
-## Quick Start
+Before you begin, ensure you have the following installed:
 
-### Installation
+- Python 3.8 or higher
+- Node.js 18 or higher
+- npm or yarn
+- Git
 
-#### Using Docker (Recommended)
+## Installation
+
+### 1. Clone the Repository
 
 ```bash
-# Clone the repository
 git clone https://github.com/yourusername/veda-base.git
 cd veda-base
-
-# Start the application
-docker-compose up -d
 ```
 
-#### Manual Installation
+### 2. Backend Setup
+
+1. Create and activate a virtual environment:
 
 ```bash
-# Backend setup
 python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-pip install -r requirements.txt
-
-# Frontend setup
-cd frontend
-pnpm install
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-### Configuration
+2. Install backend dependencies:
 
-## 1. Create a `.env` file in the root directory
+```bash
+pip install -r requirements.txt
+```
+
+3. Create a `.env` file in the root directory:
 
 ```env
-# Application
-APP_ENV=development
-DEBUG=true
-
-# Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/vedabase
-REDIS_URL=redis://localhost:6379/0
-
-# AI Services
-GROQ_API_KEY=your-api-key
-
-# Security
-JWT_SECRET=your-secret-key
+DEBUG=True
+API_KEY=your_api_key
+DATABASE_URL=sqlite:///./veda_base.db
 ```
 
-## 2. Start the services
+4. Start the backend server:
 
 ```bash
-# Start backend
 uvicorn app.main:app --reload
-
-# Start frontend (in a new terminal)
-cd frontend
-pnpm dev
 ```
 
-## 3. Access the application
+The backend API will be available at `http://localhost:8000`.
 
-- Web UI: <http://localhost:3000>
-- API Documentation: <http://localhost:8000/docs>
-- Admin Interface: <http://localhost:8501>
+### 3. Frontend Setup
+
+1. Navigate to the frontend directory:
+
+```bash
+cd frontend
+```
+
+2. Install frontend dependencies:
+
+```bash
+npm install
+```
+
+3. Create a `.env.local` file:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+NEXT_PUBLIC_WS_URL=ws://localhost:8000
+```
+
+4. Start the development server:
+
+```bash
+npm run dev
+```
+
+The frontend will be available at `http://localhost:3000`.
 
 ## Basic Usage
 
-### Document Management
+### Document Upload
 
-#### Upload Documents
-
-1. Navigate to <http://localhost:3000/upload>
+1. Navigate to the upload page
 2. Drag and drop files or click to select
-3. Add metadata (optional)
-4. Click "Upload"
+3. Supported formats: PDF, Markdown, HTML
+4. Monitor upload progress in real-time
 
-```python
-# Using the Python client
-from vedabase_client import VedaBaseClient
+### Processing Status
 
-client = VedaBaseClient(api_key="your-api-key")
+- View real-time processing status via WebSocket
+- Check document processing metrics
+- Monitor system performance
 
-# Upload a document
-response = client.documents.upload(
-    file_path="path/to/document.pdf",
-    metadata={"category": "research"}
-)
-```
+### Search and Retrieval
 
-#### Search Documents
+1. Use the search bar for basic searches
+2. Advanced search with filters and facets
+3. View and navigate the knowledge graph
 
-1. Go to <http://localhost:3000/search>
-2. Enter your search query
-3. Use filters to refine results
-4. Click on documents to view
+## Configuration
 
-```python
-# Using the Python client
-results = client.search.semantic(
-    query="quantum computing applications",
-    limit=10
-)
+### Backend Configuration
 
-for result in results:
-    print(f"Title: {result.title}")
-    print(f"Relevance: {result.score}")
-```
+Key environment variables:
 
-### Knowledge Extraction
+- `DEBUG`: Enable/disable debug mode
+- `API_KEY`: Your API key for authentication
+- `DATABASE_URL`: Database connection string
+- `CACHE_URL`: Cache server connection string
+- `LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR)
 
-#### Analyze Documents
+### Frontend Configuration
 
-1. Select a document
-2. Click "Analyze"
-3. View extracted information
-4. Explore knowledge graph
+Key environment variables:
 
-```python
-# Using the Python client
-analysis = client.documents.analyze(
-    document_id="doc123",
-    analysis_type="full"
-)
+- `NEXT_PUBLIC_API_URL`: Backend API URL
+- `NEXT_PUBLIC_WS_URL`: WebSocket server URL
+- `NEXT_PUBLIC_ENVIRONMENT`: Development/production environment
 
-print("Key Concepts:", analysis.concepts)
-print("Entities:", analysis.entities)
-```
+## Development Workflow
 
-#### Generate Insights
-
-1. Select multiple documents
-2. Click "Generate Insights"
-3. Review generated summary
-4. Export findings
-
-```python
-# Using the Python client
-insights = client.documents.generate_insights(
-    document_ids=["doc123", "doc456"],
-    insight_type="comparison"
-)
-
-print("Common Themes:", insights.themes)
-print("Differences:", insights.differences)
-```
-
-## Features Overview
-
-### Document Processing
-
-- Multi-format support (PDF, DOCX, TXT, etc.)
-- OCR for scanned documents
-- Metadata extraction
-- Content classification
-
-### Search Capabilities
-
-- Semantic search
-- Faceted filtering
-- Real-time suggestions
-- Advanced query syntax
-
-### AI Features
-
-- Named entity recognition
-- Topic modeling
-- Relationship extraction
-- Summary generation
-
-### Knowledge Management
-
-- Knowledge graph visualization
-- Concept mapping
-- Citation linking
-- Cross-referencing
-
-## API Integration
-
-### Authentication
-
-```python
-# Get API token
-token = client.auth.login(
-    username="user@example.com",
-    password="password"
-)
-
-# Use token for requests
-client = VedaBaseClient(api_token=token)
-```
-
-### Basic Operations
-
-```python
-# Create collection
-collection = client.collections.create(
-    name="Research Papers",
-    description="Academic research papers"
-)
-
-# Add document to collection
-client.collections.add_document(
-    collection_id=collection.id,
-    document_id="doc123"
-)
-
-# Search within collection
-results = client.collections.search(
-    collection_id=collection.id,
-    query="machine learning"
-)
-```
-
-## Next Steps
-
-### Explore Advanced Features
-
-- [Multi-Agent System](./architecture/ai_ml_architecture.md)
-- [Knowledge Graph](./features/knowledge_graph.md)
-- [Document Processing Pipeline](./features/document_processing.md)
-
-### Development
-
-- [Development Guide](./development/development_guide.md)
-- [API Reference](./api/api_reference.md)
-- [Contributing Guidelines](./development/contributing.md)
-
-### Deployment
-
-- [Deployment Guide](./deployment/deployment_guide.md)
-- [Security Best Practices](./deployment/security.md)
-- [Monitoring](./deployment/monitoring.md)
+1. Create a new branch for your feature
+2. Make your changes
+3. Run tests
+4. Submit a pull request
 
 ## Troubleshooting
 
-### Common Issues
+Common issues and solutions:
 
-#### Connection Problems
+1. **Backend won't start**
+   - Check Python version
+   - Verify virtual environment is activated
+   - Confirm all dependencies are installed
 
-```bash
-# Check service status
-docker-compose ps
+2. **Frontend build fails**
+   - Clear npm cache
+   - Delete node_modules and reinstall
+   - Check Node.js version
 
-# View logs
-docker-compose logs -f api
-```
+3. **WebSocket connection issues**
+   - Verify WebSocket URL
+   - Check browser console for errors
+   - Ensure backend is running
 
-#### Search Issues
+## Next Steps
 
-1. Verify document indexing status
-2. Check vector store connection
-3. Review search query syntax
+- Read the [Architecture Overview](architecture/overview.md)
+- Check the [API Documentation](api/api_reference.md)
+- Review [Development Guidelines](development/development_guide.md)
+- Learn about [Deployment](deployment/deployment_guide.md)
 
-#### Performance Issues
+## Support
 
-1. Monitor resource usage
-2. Check cache configuration
-3. Review database indexes
+If you need help:
 
-### Getting Help
+1. Check the documentation
+2. Search existing issues
+3. Create a new issue
+4. Join our community channels
 
-- [Documentation](./README.md)
-- [GitHub Issues](https://github.com/yourusername/veda-base/issues)
-- [Community Forum](https://forum.vedabase.com)
+## Contributing
 
-## Best Practices
-
-### Document Organization
-
-- Use consistent metadata
-- Organize documents in collections
-- Regular backup important documents
-- Monitor processing status
-
-### Search Optimization
-
-- Use specific search terms
-- Leverage filters effectively
-- Save common searches
-- Review search analytics
-
-### System Maintenance
-
-- Monitor system health
-- Regular backups
-- Update dependencies
-- Review security settings
-
-## Security Recommendations
-
-### Access Control
-
-- Use strong passwords
-- Enable 2FA
-- Regular access review
-- Role-based permissions
-
-### Data Protection
-
-- Encrypt sensitive data
-- Regular security updates
-- Monitor access logs
-- Implement backup strategy
-
-### Client Security
-
-- Rotate API keys
-- Rate limiting
-- Input validation
-- Security headers
+We welcome contributions! Please see our [Contributing Guide](development/contributing.md) for details.

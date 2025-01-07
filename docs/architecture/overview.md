@@ -1,242 +1,203 @@
-# System Architecture Overview
+# Architecture Overview
 
-## Introduction
+## System Architecture
 
-Veda Base is built on a modern, scalable architecture designed to handle large-scale document processing and knowledge management. The system uses a multi-agent approach combined with advanced AI capabilities to provide intelligent document processing, knowledge extraction, and information retrieval.
+Veda Base is built on a modern, scalable architecture that combines powerful AI capabilities with efficient document processing. The system is designed to be modular, maintainable, and extensible.
 
-## System Components
+```mermaid
+graph TD
+    Client[Client Applications] --> API[API Gateway]
+    API --> DocService[Document Service]
+    API --> SearchService[Search Service]
+    API --> AgentService[Agent Service]
+    
+    DocService --> Storage[(Document Storage)]
+    DocService --> Queue[Processing Queue]
+    
+    Queue --> Agents[AI Agents]
+    Agents --> VectorDB[(Vector Store)]
+    Agents --> KnowledgeGraph[(Knowledge Graph)]
+    
+    SearchService --> VectorDB
+    SearchService --> KnowledgeGraph
+```
+
+## Core Components
 
 ### Frontend Layer
 
-- **Web UI (Next.js)**
-  - Modern React-based interface
-  - Real-time updates via WebSocket
-  - Responsive design for all devices
-  - Client-side state management
-
-- **Admin Interface (Streamlit)**
-  - System monitoring and management
-  - Performance analytics
-  - Configuration management
-  - Debugging tools
+- **Next.js Application**: Modern React-based web interface
+- **WebSocket Client**: Real-time processing updates
+- **React Query**: State management and API integration
+- **TailwindCSS**: Responsive UI styling
 
 ### API Layer
 
-- **FastAPI Server**
-  - RESTful API endpoints
-  - WebSocket support
-  - Request validation
-  - Authentication/Authorization
-  - Rate limiting
+- **FastAPI Backend**: High-performance API server
+- **WebSocket Server**: Real-time communication
+- **Authentication**: API key and session management
+- **Rate Limiting**: Request throttling and protection
 
-### Core Services
+### Document Processing
+
+- **Document Service**: Handles document upload and processing
+- **Format Handlers**: PDF, Markdown, HTML processors
+- **Processing Queue**: Asynchronous task management
+- **Status Tracking**: Real-time progress monitoring
+
+### AI System
+
+- **Multi-Agent Architecture**: Specialized AI agents
+- **Document Processor Agent**: Content extraction and analysis
+- **Knowledge Graph Agent**: Relationship mapping
+- **Taxonomy Agent**: Content classification
+
+### Storage Layer
+
+- **Document Store**: Raw document storage
+- **Vector Database**: Semantic search capabilities
+- **Knowledge Graph**: Entity relationships
+- **Cache Layer**: Performance optimization
+
+## Data Flow
+
+### Document Processing Flow
 
 ```mermaid
-graph LR
-    %% Core Services
-    subgraph Core
-        DocProcessor[Document Processor]
-        AgentSystem[Multi-Agent System]
-        KnowledgeGraph[Knowledge Graph]
-        VectorStore[Vector Store]
-    end
+sequenceDiagram
+    participant Client
+    participant API
+    participant DocService
+    participant Agents
+    participant Storage
     
-    %% Agent System
-    subgraph Agents
-        LibrarianPrime[Librarian Prime]
-        ContentCurator[Content Curator]
-        TaxonomyMaster[Taxonomy Master]
-        ConnectionWeaver[Connection Weaver]
-        AnalyticsSage[Analytics Sage]
-    end
-    
-    %% Connections
-    DocProcessor --> VectorStore
-    AgentSystem --> KnowledgeGraph
-    AgentSystem --> VectorStore
-    
-    LibrarianPrime --> |Orchestration| AgentSystem
-    ContentCurator --> AgentSystem
-    TaxonomyMaster --> AgentSystem
-    ConnectionWeaver --> AgentSystem
-    AnalyticsSage --> AgentSystem
+    Client->>API: Upload Document
+    API->>DocService: Process Request
+    DocService->>Storage: Store Document
+    DocService->>Agents: Queue Processing
+    Agents->>Storage: Update Status
+    Agents->>Client: WebSocket Updates
 ```
 
-### Data Layer
+### Search Flow
 
-- **Vector Store (ChromaDB)**
-  - Document embeddings
-  - Semantic search
-  - Similarity matching
-  - Clustering capabilities
-
-- **Knowledge Graph**
-  - Entity relationships
-  - Semantic connections
-  - Cross-references
-  - Graph analytics
-
-- **Cache Layer (Redis)**
-  - Query caching
-  - Session management
-  - Real-time data
-  - Feature store
-
-## Communication Patterns
-
-### Event-Driven Architecture
-
-- Message-based communication between components
-- Asynchronous processing
-- Event sourcing for state management
-- Command-query responsibility segregation (CQRS)
-
-### Real-time Updates
-
-- WebSocket connections for live updates
-- Server-sent events for notifications
-- Progress tracking
-- Status broadcasting
-
-## Scalability
-
-### Horizontal Scaling
-
-- Kubernetes-based container orchestration
-- Microservices architecture
-- Load balancing
-- Auto-scaling capabilities
-
-### Data Scaling
-
-- Database sharding
-- Distributed caching
-- Partitioned storage
-- Replication strategies
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant Search
+    participant VectorDB
+    participant KGraph
+    
+    Client->>API: Search Query
+    API->>Search: Process Query
+    Search->>VectorDB: Vector Search
+    Search->>KGraph: Graph Query
+    Search->>Client: Combined Results
+```
 
 ## Security Architecture
 
 ### Authentication & Authorization
 
-- Role-based access control (RBAC)
-- JWT-based authentication
-- OAuth2 integration
-- API key management
+- API key validation
+- Role-based access control
+- Request signing
+- Session management
 
 ### Data Protection
 
-- Encryption at rest
-- Secure communication
-- Data privacy controls
-- Audit logging
+- TLS encryption
+- Data encryption at rest
+- Secure file handling
+- Input validation
 
-## Monitoring & Observability
+## Scalability
 
-### System Metrics
+### Horizontal Scaling
 
-- Performance monitoring
+- Stateless API servers
+- Distributed processing
+- Load balancing
+- Service discovery
+
+### Performance Optimization
+
+- Caching strategy
+- Connection pooling
+- Batch processing
+- Resource optimization
+
+## Monitoring & Logging
+
+### System Monitoring
+
+- Performance metrics
 - Resource utilization
 - Error tracking
-- Usage analytics
-
-### Application Insights
-
-- User behavior analytics
-- Performance profiling
-- Error reporting
 - Health checks
+
+### Application Logging
+
+- Structured logging
+- Log aggregation
+- Audit trails
+- Debug information
 
 ## Deployment Architecture
 
-### Infrastructure
+### Container Architecture
 
 ```mermaid
-graph TD
-    %% Infrastructure Components
-    subgraph Cloud Infrastructure
-        subgraph Kubernetes Cluster
-            %% Frontend Services
-            subgraph Frontend
-                WebUI[Web UI Pod]
-                AdminUI[Admin UI Pod]
-            end
-            
-            %% Backend Services
-            subgraph Backend
-                API[API Service]
-                Agents[Agent System]
-                Processor[Document Processor]
-            end
-            
-            %% Data Services
-            subgraph Data Layer
-                ChromaDB[Vector Store]
-                Redis[Cache]
-                PostgreSQL[Metadata Store]
-            end
-        end
-        
-        %% External Services
-        Groq[Groq LLM]
-        Logfire[Monitoring]
-        
-        %% Load Balancers
-        NGINX[NGINX Ingress]
-    end
+graph LR
+    LB[Load Balancer] --> API1[API Server 1]
+    LB --> API2[API Server 2]
+    API1 --> Cache[Redis Cache]
+    API2 --> Cache
+    API1 --> DB[(Database)]
+    API2 --> DB
+    API1 --> Queue[Message Queue]
+    API2 --> Queue
+    Queue --> W1[Worker 1]
+    Queue --> W2[Worker 2]
 ```
 
-### Service Dependencies
+### Infrastructure Components
 
-- Groq LLM API for text processing
-- ChromaDB for vector storage
-- Redis for caching
-- PostgreSQL for metadata
-- Logfire for monitoring
+- Kubernetes cluster
+- Container registry
+- Load balancers
+- Message brokers
+- Monitoring stack
 
-## Failure Handling
+## Error Handling
 
-### Error Recovery
+### Failure Modes
+
+- Network failures
+- Service unavailability
+- Resource exhaustion
+- Data corruption
+
+### Recovery Procedures
 
 - Automatic retries
 - Circuit breakers
 - Fallback mechanisms
-- Dead letter queues
-
-### Data Resilience
-
-- Backup strategies
-- Data replication
-- Disaster recovery
-- State recovery
-
-## Performance Considerations
-
-### Optimization Points
-
-- Query optimization
-- Caching strategies
-- Resource pooling
-- Batch processing
-
-### Performance Targets
-
-- API response time: < 200ms
-- Document processing: < 30s
-- Search latency: < 500ms
-- System uptime: 99.9%
+- Data consistency checks
 
 ## Future Extensibility
 
 ### Integration Points
 
+- External API hooks
 - Plugin system
-- API extensibility
-- Custom agent integration
-- External service connectors
+- Custom processors
+- Extension modules
 
 ### Planned Enhancements
 
-- Edge computing support
-- Advanced AI capabilities
-- Mobile optimization
+- Advanced AI models
 - Real-time collaboration
+- Enhanced visualization
+- Additional formats
