@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
 import DocumentUpload from '@/components/DocumentUpload';
 import ProcessingProgress from '@/components/ProcessingProgress';
 import type { UploadResponse } from '@/services/api';
@@ -12,22 +11,22 @@ const queryClient = new QueryClient();
 export default function Home() {
   const [activeBatch, setActiveBatch] = useState<string | null>(null);
   const [uploadComplete, setUploadComplete] = useState(false);
-  
+
   const handleUploadComplete = (response: UploadResponse) => {
     setActiveBatch(response.batch_id);
     setUploadComplete(true);
   };
-  
+
   const handleProcessingComplete = () => {
     setUploadComplete(false);
     setActiveBatch(null);
   };
-  
+
   const handleProcessingCancel = () => {
     setUploadComplete(false);
     setActiveBatch(null);
   };
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       <main className="min-h-screen bg-gray-50">
@@ -41,7 +40,7 @@ export default function Home() {
               Upload and process your documents with advanced knowledge management
             </p>
           </div>
-          
+
           {/* Content */}
           <div className="space-y-8">
             {/* Upload Section */}
@@ -56,7 +55,7 @@ export default function Home() {
                 />
               </div>
             </section>
-            
+
             {/* Processing Section */}
             {activeBatch && (
               <section className="bg-white rounded-lg shadow">
@@ -72,7 +71,7 @@ export default function Home() {
                 </div>
               </section>
             )}
-            
+
             {/* Upload Complete Message */}
             {uploadComplete && !activeBatch && (
               <div className="rounded-md bg-green-50 p-4">

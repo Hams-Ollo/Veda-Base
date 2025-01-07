@@ -1,8 +1,8 @@
-# Veda Base
+# 🧠 Veda Base
 
 A modern knowledge management system powered by AI agents for intelligent document processing and information retrieval.
 
-## Features
+## ✨ Features
 
 - 🤖 Multi-agent system for intelligent document processing
 - 📄 Support for multiple document formats (PDF, Markdown, HTML)
@@ -13,36 +13,36 @@ A modern knowledge management system powered by AI agents for intelligent docume
 - 🎯 REST API with FastAPI backend
 - ⚛️ Modern React frontend with Next.js
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-### Backend
+### 🔧 Backend
 
-- Python 3.8+
-- FastAPI
-- Socket.IO
-- Pydantic
-- SQLAlchemy
-- Various AI/ML libraries
+- 🐍 Python 3.8+
+- ⚡ FastAPI
+- 🔌 Socket.IO
+- 📝 Pydantic
+- 🗃️ SQLAlchemy
+- 🧪 Various AI/ML libraries
 
-### Frontend
+### 🎨 Frontend
 
-- Next.js 14
-- React 18
-- TypeScript
-- Socket.IO Client
-- TailwindCSS
-- React Query
+- ⚛️ Next.js 14
+- 🔄 React 18
+- 📘 TypeScript
+- 🔌 Socket.IO Client
+- 🎨 TailwindCSS
+- 🔄 React Query
 
-## Getting Started
+## 🚀 Getting Started
 
-### Prerequisites
+### 📋 Prerequisites
 
-- Python 3.8+
-- Node.js 18+
-- npm/yarn
-- Virtual environment (recommended)
+- 🐍 Python 3.8+
+- 📦 Node.js 18+
+- 📥 npm/yarn
+- 🔧 Virtual environment (recommended)
 
-### Backend Setup
+### ⚙️ Backend Setup
 
 ```bash
 # Create and activate virtual environment
@@ -56,7 +56,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-### Frontend Setup
+### 🎨 Frontend Setup
 
 ```bash
 # Navigate to frontend directory
@@ -71,13 +71,13 @@ npm run dev
 
 The application will be available at:
 
-- Frontend: <http://localhost:3000>
-- Backend API: <http://localhost:8000>
-- API Documentation: <http://localhost:8000/docs>
+- 🌐 Frontend: <http://localhost:3000>
+- 🔧 Backend API: <http://localhost:8000>
+- 📚 API Documentation: <http://localhost:8000/docs>
 
-## Environment Variables
+## ⚙️ Environment Variables
 
-### Application Backend
+### 🔧 Application Backend
 
 Create a `.env` file in the root directory:
 
@@ -87,7 +87,7 @@ API_KEY=your_api_key
 DATABASE_URL=sqlite:///./veda_base.db
 ```
 
-### React Frontend
+### 🎨 React Frontend
 
 Create a `.env.local` file in the frontend directory:
 
@@ -96,21 +96,21 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api
 NEXT_PUBLIC_WS_URL=ws://localhost:8000
 ```
 
-## Documentation
+## 📚 Documentation
 
-- [API Documentation](docs/api/api_reference.md)
-- [Architecture Overview](docs/architecture/overview.md)
-- [Development Guide](docs/development/development_guide.md)
-- [Deployment Guide](docs/deployment/deployment_guide.md)
+- 📖 [API Documentation](docs/api/api_reference.md)
+- 🏗️ [Architecture Overview](docs/architecture/overview.md)
+- 💻 [Development Guide](docs/development/development_guide.md)
+- 🚀 [Deployment Guide](docs/deployment/deployment_guide.md)
 
-## Contributing
+## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. 🍴 Fork the repository
+2. 🌿 Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. 💾 Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. 📤 Push to the branch (`git push origin feature/amazing-feature`)
+5. 🔄 Open a Pull Request
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

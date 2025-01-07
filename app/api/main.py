@@ -48,7 +48,7 @@ app.include_router(documents.router, prefix="/api/documents", tags=["documents"]
 app.include_router(processing.router, prefix="/api/processing", tags=["processing"])
 
 # WebSocket connection manager
-processing_ws_manager = processing_manager.ProcessingWebSocketManager()
+processing_ws_manager = processing_manager.manager
 
 @app.on_event("startup")
 async def startup_event():

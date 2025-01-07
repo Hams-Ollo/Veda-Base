@@ -115,26 +115,26 @@ veda-base/
 #### Backend Tests
 
 ```bash
-# Run all tests
+# Unit Tests
 pytest
 
-# Run specific test file
+# Test Specific File
 pytest tests/test_file.py
 
-# Run with coverage
+# Coverage Report
 pytest --cov=app tests/
 ```
 
 #### Frontend Tests
 
 ```bash
-# Run all tests
+# Unit Tests
 npm test
 
-# Run specific test file
+# Test Specific Component
 npm test -- src/components/YourComponent.test.tsx
 
-# Run with coverage
+# Coverage Report
 npm test -- --coverage
 ```
 
@@ -166,7 +166,7 @@ npm test -- --coverage
 
 ### Adding New Endpoints
 
-1. Create route in `app/api/routes/`:
+## 1. Create route in `app/api/routes/`
 
 ```python
 from fastapi import APIRouter, Depends
@@ -179,7 +179,7 @@ async def endpoint(current_user = Depends(get_current_user)):
     return {"message": "Success"}
 ```
 
-2. Register route in `app/api/__init__.py`
+## 2. Register route in `app/api/__init__.py`
 
 ### WebSocket Development
 
@@ -203,7 +203,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 ### Component Development
 
-1. Create new component:
+## 1. Create new component
 
 ```tsx
 import React from 'react';
@@ -222,7 +222,7 @@ export function Component({ className }: Props) {
 }
 ```
 
-2. Add tests:
+## 2. Add tests
 
 ```tsx
 import { render, screen } from '@testing-library/react';
@@ -252,7 +252,7 @@ export function useData() {
 }
 ```
 
-2. Use local state when appropriate:
+## 2. Use local state when appropriate
 
 ```tsx
 const [state, setState] = useState<State>({});
@@ -276,7 +276,7 @@ const [state, setState] = useState<State>({});
 
 ## Error Handling
 
-### Backend
+### Application Backend
 
 ```python
 from fastapi import HTTPException
@@ -291,7 +291,7 @@ except Exception as e:
     raise HTTPException(status_code=500)
 ```
 
-### Frontend
+### Application Frontend
 
 ```typescript
 try {

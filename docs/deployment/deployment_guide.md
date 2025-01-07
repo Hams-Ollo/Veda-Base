@@ -1,44 +1,36 @@
 # Deployment Guide
 
-This guide provides instructions for deploying Veda Base in a production environment.
+## System Prerequisites
 
-## Prerequisites
+## Environment Configuration
 
-- Docker and Docker Compose
-- Kubernetes cluster
-- Domain name and SSL certificates
-- Cloud provider account (AWS/GCP/Azure)
-- CI/CD pipeline (GitHub Actions/GitLab CI)
+### Production Environment Variables
 
-## Environment Setup
-
-### Environment Variables
-
-1. Backend environment (`.env.production`):
+## 1. Backend Environment Variables
 
 ```env
-# Application
+# Application Settings
 DEBUG=false
 ENVIRONMENT=production
 LOG_LEVEL=INFO
 
-# Database
+# Database Configuration
 DATABASE_URL=postgresql://user:password@host:5432/veda_base
 REDIS_URL=redis://host:6379/0
 
-# Security
+# Security Settings
 API_KEY=your-production-api-key
 JWT_SECRET=your-jwt-secret
 ALLOWED_ORIGINS=https://your-domain.com
 
-# AI Services
+# AI Service Configuration
 GROQ_API_KEY=your-groq-api-key
 
-# Monitoring
+# Monitoring Settings
 LOGFIRE_TOKEN=your-logfire-token
 ```
 
-2. Frontend environment (`.env.production`):
+## 2. Frontend Environment Variables
 
 ```env
 NEXT_PUBLIC_API_URL=https://api.your-domain.com
@@ -46,9 +38,9 @@ NEXT_PUBLIC_WS_URL=wss://api.your-domain.com
 NEXT_PUBLIC_ENVIRONMENT=production
 ```
 
-## Docker Configuration
+## Docker Setup
 
-### Production Dockerfile
+### Docker Build Configuration
 
 ```dockerfile
 # Backend Dockerfile
@@ -77,7 +69,7 @@ RUN npm run build
 CMD ["npm", "start"]
 ```
 
-### Docker Compose
+### Docker Service Configuration
 
 ```yaml
 version: '3.8'
@@ -123,9 +115,9 @@ volumes:
   redis_data:
 ```
 
-## Kubernetes Deployment
+## Kubernetes Setup
 
-### Namespace and Secrets
+### K8s Resource Configuration
 
 ```yaml
 # namespace.yaml
@@ -148,7 +140,7 @@ data:
   JWT_SECRET: base64_encoded_secret
 ```
 
-### Deployments
+### K8s Service Configuration
 
 ```yaml
 # api-deployment.yaml
@@ -270,7 +262,7 @@ spec:
                   number: 80
 ```
 
-## Database Migration
+## Database Operations
 
 ```bash
 # Run migrations
@@ -283,9 +275,9 @@ pg_dump -U user -d veda_base > backup.sql
 psql -U user -d veda_base < backup.sql
 ```
 
-## Monitoring Setup
+## Monitoring Configuration
 
-### Prometheus Configuration
+### Prometheus Setup
 
 ```yaml
 # prometheus.yaml
@@ -296,15 +288,15 @@ scrape_configs:
       - targets: ['veda-base-api:8000']
 ```
 
-### Grafana Dashboard
+### Grafana Setup
 
 1. Import dashboard template
 2. Configure data source
 3. Set up alerts
 
-## CI/CD Pipeline
+## Pipeline Configuration
 
-### GitHub Actions
+### CI/CD Setup
 
 ```yaml
 name: Deploy
@@ -336,9 +328,9 @@ jobs:
           kubectl apply -f k8s/
 ```
 
-## SSL Configuration
+## SSL Setup
 
-### Certbot Setup
+### Certificate Configuration
 
 ```bash
 # Install certbot
@@ -351,7 +343,7 @@ certbot certonly --webroot -w /var/www/html -d your-domain.com
 certbot renew --dry-run
 ```
 
-## Backup Strategy
+## System Backups
 
 1. Database backups:
    - Daily automated backups
@@ -363,7 +355,7 @@ certbot renew --dry-run
    - Configuration backup
    - Log files backup
 
-## Security Checklist
+## Security Guidelines
 
 - [ ] SSL certificates installed
 - [ ] Firewall rules configured
@@ -375,9 +367,9 @@ certbot renew --dry-run
 - [ ] Access logs enabled
 - [ ] Error reporting configured
 
-## Troubleshooting
+## System Troubleshooting
 
-### Common Issues
+### Common Production Issues
 
 1. Database connection issues:
    - Check connection string
@@ -394,9 +386,9 @@ certbot renew --dry-run
    - Check database indexes
    - Review caching strategy
 
-## Maintenance
+## System Maintenance
 
-### Regular Tasks
+### Scheduled Tasks
 
 1. Daily:
    - Monitor error logs
