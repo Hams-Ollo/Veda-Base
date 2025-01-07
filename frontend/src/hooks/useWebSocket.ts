@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
+import socketIOClient from 'socket.io-client';
 
 export interface WebSocketMessage {
   type: string;
@@ -17,9 +17,9 @@ interface UseWebSocketOptions {
 }
 
 export function useWebSocket(batchId: string, options: UseWebSocketOptions = {}) {
-  const socket = useRef<Socket | undefined>(undefined);
+  const socket = useRef<ReturnType<typeof socketIOClient>>();
   const reconnectAttempts = useRef<number>(0);
-  const reconnectTimer = useRef<NodeJS.Timeout | undefined>(undefined);
+  const reconnectTimer = useRef<NodeJS.Timeout>();
   
   const {
     onProgress,
@@ -35,7 +35,7 @@ export function useWebSocket(batchId: string, options: UseWebSocketOptions = {})
     
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000';
     
-    socket.current = io(`${wsUrl}/documents/ws/${batchId}`, {
+    socket.current = socketIOClient(`${wsUrl}/documents/ws/${batchId}`, {
       transports: ['websocket'],
       reconnection: false, // We'll handle reconnection ourselves
     });

@@ -1,4 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
+import type { AxiosInstance } from 'axios';
 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({

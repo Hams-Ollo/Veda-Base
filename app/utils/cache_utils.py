@@ -160,9 +160,58 @@ class DiskCache:
                 await self.delete(key)
                 total_size -= meta["size"]
 
-# Global cache instances
-memory_cache = AsyncLRUCache()
-disk_cache = DiskCache(Path("cache"))
+class CacheManager:
+    """Manages both memory and disk caches with statistics tracking."""
+    
+    def __init__(self):
+        self.memory_cache = AsyncLRUCache()
+        self.disk_cache = DiskCache(Path("cache"))
+        self.stats = {
+            "hits": 0,
+            "misses": 0,
+            "size": 0,
+            "count": 0
+        }
+    
+    async def get(self, key: str, use_disk: bool = False) -> Optional[Any]:
+        """Get item from cache."""
+        cache = self.disk_cache if use_disk else self.memory_cache
+        result = await cache.get(key)
+        
+        if result is not None:
+            self.stats["hits"] += 1
+        else:
+            self.stats["misses"] += 1
+        
+        return result
+    
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None, use_disk: bool = False):
+        """Set item in cache."""
+        cache = self.disk_cache if use_disk else self.memory_cache
+        await cache.set(key, value, ttl)
+        self.stats["count"] += 1
+    
+    async def delete(self, key: str, use_disk: bool = False):
+        """Remove item from cache."""
+        cache = self.disk_cache if use_disk else self.memory_cache
+        await cache.delete(key)
+        self.stats["count"] = max(0, self.stats["count"] - 1)
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get cache statistics."""
+        total = self.stats["hits"] + self.stats["misses"]
+        hit_rate = (self.stats["hits"] / total * 100) if total > 0 else 0
+        
+        return {
+            "hits": self.stats["hits"],
+            "misses": self.stats["misses"],
+            "hit_rate": hit_rate,
+            "count": self.stats["count"],
+            "size": self.stats["size"]
+        }
+
+# Global cache manager instance
+cache_manager = CacheManager()
 
 def cache_result(
     ttl: Optional[int] = None,
@@ -174,16 +223,15 @@ def cache_result(
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             # Create cache key from function name and arguments
             key = f"{func.__name__}:{hash(str(args))}{hash(str(kwargs))}"
-            cache = disk_cache if use_disk else memory_cache
             
             # Try to get from cache
-            result = await cache.get(key)
+            result = await cache_manager.get(key, use_disk)
             if result is not None:
                 return result
             
             # Execute function and cache result
             result = await func(*args, **kwargs)
-            await cache.set(key, result, ttl)
+            await cache_manager.set(key, result, ttl, use_disk)
             return result
         
         return wrapper
