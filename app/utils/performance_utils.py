@@ -1,166 +1,195 @@
-"""Performance monitoring utilities for the Library of Alexandria."""
+"""Performance monitoring and optimization utilities."""
 
+import logging
 import time
 import psutil
-import functools
-from typing import Any, Callable, Dict, Optional, TypeVar, cast
-from dataclasses import dataclass
-from datetime import datetime
-import threading
+import asyncio
+from typing import Dict, Any, Optional
 from contextlib import contextmanager
-import logging
+from datetime import datetime
+from dataclasses import dataclass
+import tracemalloc
+from functools import wraps
 
-# Type variables for generic function decorators
-F = TypeVar('F', bound=Callable[..., Any])
+logger = logging.getLogger(__name__)
 
 @dataclass
 class PerformanceMetrics:
     """Container for performance metrics."""
     execution_time: float
-    memory_used: float
+    memory_used: int
     cpu_percent: float
-    timestamp: datetime
-    function_name: str
-    success: bool
-    error: Optional[str] = None
+    timestamp: str = datetime.utcnow().isoformat()
 
 class PerformanceMonitor:
-    """Singleton class for tracking system-wide performance metrics."""
+    """Monitors system and application performance."""
     
-    _instance = None
-    _lock = threading.Lock()
-    
-    def __new__(cls):
-        with cls._lock:
-            if cls._instance is None:
-                cls._instance = super().__new__(cls)
-                cls._instance._initialize()
-            return cls._instance
-    
-    def _initialize(self):
-        """Initialize the performance monitor."""
-        self.metrics: Dict[str, list[PerformanceMetrics]] = {}
-        self.logger = logging.getLogger('performance_monitor')
+    def __init__(self):
         self.process = psutil.Process()
+        self.metrics_history: Dict[str, list] = {}
+        tracemalloc.start()
     
-    def record_metric(self, metric: PerformanceMetrics):
-        """Record a performance metric."""
-        with self._lock:
-            if metric.function_name not in self.metrics:
-                self.metrics[metric.function_name] = []
-            self.metrics[metric.function_name].append(metric)
+    def get_system_metrics(self) -> Dict[str, Any]:
+        """Get current system metrics."""
+        return {
+            "cpu_percent": psutil.cpu_percent(interval=1),
+            "memory_percent": psutil.virtual_memory().percent,
+            "disk_usage": psutil.disk_usage('/').percent,
+            "timestamp": datetime.utcnow().isoformat()
+        }
     
-    def get_metrics(self, function_name: Optional[str] = None) -> Dict[str, list[PerformanceMetrics]]:
-        """Get recorded metrics, optionally filtered by function name."""
-        with self._lock:
-            if function_name:
-                return {function_name: self.metrics.get(function_name, [])}
-            return self.metrics.copy()
+    def get_process_metrics(self) -> Dict[str, Any]:
+        """Get current process metrics."""
+        return {
+            "cpu_percent": self.process.cpu_percent(),
+            "memory_info": dict(self.process.memory_info()._asdict()),
+            "num_threads": self.process.num_threads(),
+            "num_fds": self.process.num_fds(),
+            "timestamp": datetime.utcnow().isoformat()
+        }
     
-    def clear_metrics(self, function_name: Optional[str] = None):
-        """Clear recorded metrics, optionally for a specific function."""
-        with self._lock:
-            if function_name:
-                self.metrics.pop(function_name, None)
-            else:
-                self.metrics.clear()
+    def record_metrics(self, operation: str, metrics: PerformanceMetrics):
+        """Record performance metrics for an operation."""
+        if operation not in self.metrics_history:
+            self.metrics_history[operation] = []
+        
+        self.metrics_history[operation].append({
+            "execution_time": metrics.execution_time,
+            "memory_used": metrics.memory_used,
+            "cpu_percent": metrics.cpu_percent,
+            "timestamp": metrics.timestamp
+        })
+        
+        # Keep only last 1000 metrics per operation
+        if len(self.metrics_history[operation]) > 1000:
+            self.metrics_history[operation].pop(0)
+    
+    def get_metrics_summary(self, operation: str) -> Dict[str, Any]:
+        """Get summary statistics for an operation."""
+        if operation not in self.metrics_history:
+            return {}
+        
+        metrics = self.metrics_history[operation]
+        execution_times = [m["execution_time"] for m in metrics]
+        memory_used = [m["memory_used"] for m in metrics]
+        cpu_percent = [m["cpu_percent"] for m in metrics]
+        
+        return {
+            "execution_time": {
+                "avg": sum(execution_times) / len(execution_times),
+                "min": min(execution_times),
+                "max": max(execution_times)
+            },
+            "memory_used": {
+                "avg": sum(memory_used) / len(memory_used),
+                "min": min(memory_used),
+                "max": max(memory_used)
+            },
+            "cpu_percent": {
+                "avg": sum(cpu_percent) / len(cpu_percent),
+                "min": min(cpu_percent),
+                "max": max(cpu_percent)
+            },
+            "num_samples": len(metrics)
+        }
+    
+    def get_memory_snapshot(self) -> Dict[str, Any]:
+        """Get detailed memory usage snapshot."""
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+        
+        return {
+            "top_memory_users": [
+                {
+                    "file": str(stat.traceback[0]),
+                    "line": stat.traceback[0].lineno,
+                    "size": stat.size,
+                    "count": stat.count
+                }
+                for stat in top_stats[:10]  # Top 10 memory users
+            ],
+            "total_memory": sum(stat.size for stat in top_stats),
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
-def timer(func: F) -> F:
-    """Decorator to measure function execution time."""
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        monitor = PerformanceMonitor()
-        start_time = time.time()
-        start_memory = monitor.process.memory_info().rss / 1024 / 1024  # MB
-        
-        try:
-            result = func(*args, **kwargs)
-            success = True
-            error = None
-        except Exception as e:
-            success = False
-            error = str(e)
-            raise
-        finally:
-            end_time = time.time()
-            end_memory = monitor.process.memory_info().rss / 1024 / 1024  # MB
-            
-            metric = PerformanceMetrics(
-                execution_time=end_time - start_time,
-                memory_used=end_memory - start_memory,
-                cpu_percent=monitor.process.cpu_percent(),
-                timestamp=datetime.now(),
-                function_name=func.__name__,
-                success=success,
-                error=error
-            )
-            
-            monitor.record_metric(metric)
-        
-        return result
-    
-    return cast(F, wrapper)
+# Global performance monitor instance
+monitor = PerformanceMonitor()
 
 @contextmanager
-def memory_usage():
-    """Context manager to measure memory usage."""
-    process = psutil.Process()
-    start_memory = process.memory_info().rss / 1024 / 1024  # MB
+def timer(operation: Optional[str] = None):
+    """Context manager for timing code execution."""
+    start_time = time.time()
+    start_memory = monitor.process.memory_info().rss
+    start_cpu = monitor.process.cpu_percent()
     
     try:
         yield
     finally:
-        end_memory = process.memory_info().rss / 1024 / 1024  # MB
-        memory_used = end_memory - start_memory
-        logging.getLogger('performance_monitor').info(
-            f'Memory usage: {memory_used:.2f} MB'
-        )
-
-def get_system_metrics() -> Dict[str, float]:
-    """Get current system metrics."""
-    return {
-        'cpu_percent': psutil.cpu_percent(),
-        'memory_percent': psutil.virtual_memory().percent,
-        'disk_usage_percent': psutil.disk_usage('/').percent,
-        'swap_memory_percent': psutil.swap_memory().percent
-    }
-
-def profile_generator(generator_func: Callable):
-    """Decorator to profile generator functions."""
-    @functools.wraps(generator_func)
-    def wrapper(*args, **kwargs):
-        monitor = PerformanceMonitor()
-        start_time = time.time()
-        start_memory = monitor.process.memory_info().rss / 1024 / 1024
+        end_time = time.time()
+        end_memory = monitor.process.memory_info().rss
+        end_cpu = monitor.process.cpu_percent()
         
+        metrics = PerformanceMetrics(
+            execution_time=end_time - start_time,
+            memory_used=end_memory - start_memory,
+            cpu_percent=end_cpu - start_cpu
+        )
+        
+        if operation:
+            monitor.record_metrics(operation, metrics)
+
+@contextmanager
+def memory_usage():
+    """Context manager for tracking memory usage."""
+    tracemalloc.start()
+    
+    try:
+        yield
+    finally:
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+        
+        logger.debug("Memory usage:")
+        for stat in top_stats[:3]:  # Log top 3 memory users
+            logger.debug(f"{stat.size/1024:.1f} KB - {stat.traceback[0]}")
+        
+        tracemalloc.stop()
+
+def track_performance(operation: str):
+    """Decorator for tracking function performance."""
+    def decorator(func):
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            with timer(operation):
+                return await func(*args, **kwargs)
+        
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            with timer(operation):
+                return func(*args, **kwargs)
+        
+        return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+    return decorator
+
+async def monitor_system_health():
+    """Background task for monitoring system health."""
+    while True:
         try:
-            for item in generator_func(*args, **kwargs):
-                current_memory = monitor.process.memory_info().rss / 1024 / 1024
-                current_time = time.time() - start_time
-                
-                metric = PerformanceMetrics(
-                    execution_time=current_time,
-                    memory_used=current_memory - start_memory,
-                    cpu_percent=monitor.process.cpu_percent(),
-                    timestamp=datetime.now(),
-                    function_name=f'{generator_func.__name__}_generator',
-                    success=True
-                )
-                
-                monitor.record_metric(metric)
-                yield item
-                
-        except Exception as e:
-            metric = PerformanceMetrics(
-                execution_time=time.time() - start_time,
-                memory_used=monitor.process.memory_info().rss / 1024 / 1024 - start_memory,
-                cpu_percent=monitor.process.cpu_percent(),
-                timestamp=datetime.now(),
-                function_name=f'{generator_func.__name__}_generator',
-                success=False,
-                error=str(e)
-            )
-            monitor.record_metric(metric)
-            raise
+            # Get current metrics
+            system_metrics = monitor.get_system_metrics()
+            process_metrics = monitor.get_process_metrics()
             
-    return wrapper 
+            # Log warnings for high resource usage
+            if system_metrics["cpu_percent"] > 80:
+                logger.warning("High CPU usage detected")
+            
+            if system_metrics["memory_percent"] > 80:
+                logger.warning("High memory usage detected")
+            
+            if system_metrics["disk_usage"] > 80:
+                logger.warning("High disk usage detected")
+            
+        except Exception as e:
+            logger.error(f"Error monitoring system health: {str(e)}")
+        
+        await asyncio.sleep(60)  # Check every minute 

@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="library-of-alexandria",
+    name="veda-base",
     version="0.1.0",
     description="A multi-agent system for knowledge management and document processing",
-    author="Knowledge Factory Team",
+    author="@hams_ollo",
     packages=find_packages(),
     install_requires=[
         # Core Dependencies
@@ -19,6 +19,7 @@ setup(
         "asyncio>=3.4.3",
         "websockets>=12.0",
         "python-multipart>=0.0.6",
+        "aiofiles>=23.2.1",
 
         # Data Processing and Analysis
         "pandas>=2.0.3",
@@ -29,11 +30,15 @@ setup(
         # Document Processing
         "python-docx>=0.8.11",
         "PyPDF2>=3.0.1",
+        "PyMuPDF>=1.23.8",  # fitz
         "markdown>=3.4.3",
+        "python-frontmatter>=1.0.0",
+        "trafilatura>=2.0.0",
         "python-pptx>=0.6.22",
         "python-magic>=0.4.27",
         "beautifulsoup4>=4.12.0",
         "lxml>=4.9.0",
+        "camelot-py>=0.11.0",
 
         # AI and Machine Learning
         "groq>=0.4.2",
@@ -66,6 +71,7 @@ setup(
         "python-slugify>=8.0.1",
         "cryptography>=41.0.0",
         "tenacity>=8.2.0",
+        "diskcache>=5.6.1",
     ],
     extras_require={
         'dev': [
